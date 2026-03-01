@@ -35,9 +35,13 @@ class PayrollController extends Controller
             ->toArray();
 
         return response()->json([
-            'payroll' => $payroll ? $this->transformPayroll($payroll) : null,
-            'available_months' => $availableMonths,
-            'year_month' => $yearMonth,
+            'success' => true,
+            'message' => null,
+            'data' => [
+                'payroll' => $payroll ? $this->transformPayroll($payroll) : null,
+                'available_months' => $availableMonths,
+                'year_month' => $yearMonth,
+            ]
         ]);
     }
 
@@ -154,8 +158,12 @@ class PayrollController extends Controller
         });
 
         return response()->json([
-            'users' => $result,
-            'year_month' => $yearMonth,
+            'success' => true,
+            'message' => null,
+            'data' => [
+                'users' => $result,
+                'year_month' => $yearMonth,
+            ]
         ]);
     }
 
@@ -299,18 +307,22 @@ class PayrollController extends Controller
             ->first();
 
         return response()->json([
-            'year_month' => $yearMonth,
-            'summary' => [
-                'total_base_salary' => (float) $summary->total_base_salary,
-                'total_bonus' => (float) $summary->total_bonus,
-                'total_allowance' => (float) $summary->total_allowance,
-                'total_deduction' => (float) $summary->total_deduction,
-                'total_net_amount' => (float) $summary->total_net_amount,
-                'draft_count' => (int) $summary->draft_count,
-                'published_count' => (int) $summary->published_count,
-                'paid_count' => (int) $summary->paid_count,
-                'total_payrolls' => (int) $summary->total_payrolls,
-            ],
+            'success' => true,
+            'message' => null,
+            'data' => [
+                'year_month' => $yearMonth,
+                'summary' => [
+                    'total_base_salary' => (float) $summary->total_base_salary,
+                    'total_bonus' => (float) $summary->total_bonus,
+                    'total_allowance' => (float) $summary->total_allowance,
+                    'total_deduction' => (float) $summary->total_deduction,
+                    'total_net_amount' => (float) $summary->total_net_amount,
+                    'draft_count' => (int) $summary->draft_count,
+                    'published_count' => (int) $summary->published_count,
+                    'paid_count' => (int) $summary->paid_count,
+                    'total_payrolls' => (int) $summary->total_payrolls,
+                ],
+            ]
         ]);
     }
 

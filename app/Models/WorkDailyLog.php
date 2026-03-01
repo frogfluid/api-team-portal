@@ -18,6 +18,7 @@ class WorkDailyLog extends Model
         'note',
         'status',
         'submitted_at',
+        'admin_comment'
     ];
 
     protected $casts = [

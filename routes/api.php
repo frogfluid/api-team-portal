@@ -168,12 +168,14 @@ Route::middleware('auth:sanctum')->group(function () {
         // Schedule approve/reject (Swift: /admin/reviews/{id}/approve)
         Route::post('/reviews/{workSchedule}/approve', [ReviewController::class, 'approveSchedule']);
         Route::post('/reviews/{workSchedule}/reject', [ReviewController::class, 'rejectSchedule']);
-        // Daily approve/reject
+        // Daily approve/reject/comment
         Route::post('/reviews/daily/{dailyLog}/approve', [ReviewController::class, 'approveDaily']);
         Route::post('/reviews/daily/{dailyLog}/reject', [ReviewController::class, 'rejectDaily']);
-        // Weekly approve/reject
+        Route::post('/reviews/daily/{dailyLog}/comment', [ReviewController::class, 'commentDaily']);
+        // Weekly approve/reject/comment
         Route::post('/reviews/weekly/{weeklyReport}/approve', [ReviewController::class, 'approveWeekly']);
         Route::post('/reviews/weekly/{weeklyReport}/reject', [ReviewController::class, 'rejectWeekly']);
+        Route::post('/reviews/weekly/{weeklyReport}/comment', [ReviewController::class, 'commentWeekly']);
 
         // Leave Quotas
         Route::get('/leave-quotas', [LeaveQuotaController::class, 'index']);

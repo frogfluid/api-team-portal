@@ -24,7 +24,7 @@ class ReviewController extends Controller
             ->orderByDesc('work_date')
             ->limit(50)
             ->get()
-            ->map(fn ($log) => [
+            ->map(fn($log) => [
                 'id' => $log->id,
                 'type' => 'daily_log',
                 'user_id' => $log->user_id,
@@ -42,7 +42,7 @@ class ReviewController extends Controller
             ->orderByDesc('week_start_date')
             ->limit(50)
             ->get()
-            ->map(fn ($report) => [
+            ->map(fn($report) => [
                 'id' => $report->id,
                 'type' => 'weekly_report',
                 'user_id' => $report->user_id,
@@ -60,7 +60,7 @@ class ReviewController extends Controller
             ->orderByDesc('start_at')
             ->limit(50)
             ->get()
-            ->map(fn ($s) => [
+            ->map(fn($s) => [
                 'id' => $s->id,
                 'type' => 'schedule',
                 'user_id' => $s->user_id,
@@ -82,7 +82,8 @@ class ReviewController extends Controller
 
     public function approveSchedule(Request $request, WorkSchedule $workSchedule): JsonResponse
     {
-        if (!$request->user()->canReview()) abort(403);
+        if (!$request->user()->canReview())
+            abort(403);
 
         if ($workSchedule->status !== 'pending') {
             return response()->json(['message' => 'Schedule is not pending.'], 422);
@@ -111,7 +112,8 @@ class ReviewController extends Controller
 
     public function rejectSchedule(Request $request, WorkSchedule $workSchedule): JsonResponse
     {
-        if (!$request->user()->canReview()) abort(403);
+        if (!$request->user()->canReview())
+            abort(403);
 
         if ($workSchedule->status !== 'pending') {
             return response()->json(['message' => 'Schedule is not pending.'], 422);
@@ -128,7 +130,8 @@ class ReviewController extends Controller
 
     public function approveDaily(Request $request, WorkDailyLog $dailyLog): JsonResponse
     {
-        if (!$request->user()->canReview()) abort(403);
+        if (!$request->user()->canReview())
+            abort(403);
 
         $dailyLog->update(['status' => 'approved']);
 
@@ -137,16 +140,32 @@ class ReviewController extends Controller
 
     public function rejectDaily(Request $request, WorkDailyLog $dailyLog): JsonResponse
     {
-        if (!$request->user()->canReview()) abort(403);
+        if (!$request->user()->canReview())
+            abort(403);
 
         $dailyLog->update(['status' => 'rejected']);
 
         return response()->json(['message' => 'Daily log rejected.']);
     }
 
+    public function commentDaily(Request $request, WorkDailyLog $dailyLog): JsonResponse
+    {
+        if (!$request->user()->canReview())
+            abort(403);
+
+        $validated = $request->validate([
+            'comment' => 'required|string|max:1000'
+        ]);
+
+        $dailyLog->update(['admin_comment' => $validated['comment']]);
+
+        return response()->json(['message' => 'Comment added to daily log.']);
+    }
+
     public function approveWeekly(Request $request, WeeklyReport $weeklyReport): JsonResponse
     {
-        if (!$request->user()->canReview()) abort(403);
+        if (!$request->user()->canReview())
+            abort(403);
 
         $weeklyReport->update(['status' => 'approved']);
 
@@ -155,10 +174,25 @@ class ReviewController extends Controller
 
     public function rejectWeekly(Request $request, WeeklyReport $weeklyReport): JsonResponse
     {
-        if (!$request->user()->canReview()) abort(403);
+        if (!$request->user()->canReview())
+            abort(403);
 
         $weeklyReport->update(['status' => 'rejected']);
 
         return response()->json(['message' => 'Weekly report rejected.']);
+    }
+
+    public function commentWeekly(Request $request, WeeklyReport $weeklyReport): JsonResponse
+    {
+        if (!$request->user()->canReview())
+            abort(403);
+
+        $validated = $request->validate([
+            'comment' => 'required|string|max:1000'
+        ]);
+
+        $weeklyReport->update(['admin_comment' => $validated['comment']]);
+
+        return response()->json(['message' => 'Comment added to weekly report.']);
     }
 }

@@ -19,6 +19,7 @@ class WeeklyReport extends Model
         'support_needed',
         'status',
         'submitted_at',
+        'admin_comment'
     ];
 
     protected $casts = [
