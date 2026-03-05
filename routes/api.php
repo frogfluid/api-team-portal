@@ -12,6 +12,13 @@ use App\Http\Controllers\Api\DailyLogController;
 use App\Http\Controllers\Api\WeeklyReportController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\ScheduleController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\OkrController;
+use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\KnowledgeController;
+use App\Http\Controllers\Api\DeliverableController;
+use App\Http\Controllers\Api\AnnouncementController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\Admin\ReviewController;
 use App\Http\Controllers\Api\Admin\LeaveQuotaController;
@@ -57,6 +64,52 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks/{task}/messages', [TaskController::class, 'messages']);
     Route::post('/tasks/{task}/messages', [TaskController::class, 'storeMessage']);
     Route::post('/tasks/{task}/transfer-owner', [TaskController::class, 'transferOwner']);
+
+    // ── Projects ────────────────────────────────────────────────────
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::post('/projects', [ProjectController::class, 'store']);
+    Route::get('/projects/{project}', [ProjectController::class, 'show']);
+    Route::put('/projects/{project}', [ProjectController::class, 'update']);
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
+    Route::post('/projects/{project}/milestones', [ProjectController::class, 'storeMilestone']);
+    Route::patch('/projects/{project}/milestones/{milestone}', [ProjectController::class, 'updateMilestone']);
+    Route::delete('/projects/{project}/milestones/{milestone}', [ProjectController::class, 'destroyMilestone']);
+
+    // ── OKR ─────────────────────────────────────────────────────────
+    Route::get('/objectives', [OkrController::class, 'index']);
+    Route::post('/objectives', [OkrController::class, 'store']);
+    Route::get('/objectives/{objective}', [OkrController::class, 'show']);
+    Route::put('/objectives/{objective}', [OkrController::class, 'update']);
+    Route::delete('/objectives/{objective}', [OkrController::class, 'destroy']);
+    Route::post('/objectives/{objective}/key-results', [OkrController::class, 'storeKeyResult']);
+    Route::post('/key-results/{keyResult}/check-in', [OkrController::class, 'checkIn']);
+
+    // ── Attendance ──────────────────────────────────────────────────
+    Route::get('/attendance', [AttendanceController::class, 'index']);
+    Route::get('/attendance/today', [AttendanceController::class, 'today']);
+    Route::post('/attendance/clock', [AttendanceController::class, 'clockAction']);
+
+    // ── Knowledge Center ────────────────────────────────────────────
+    Route::get('/knowledge', [KnowledgeController::class, 'index']);
+    Route::get('/knowledge/{knowledgeDocument}', [KnowledgeController::class, 'show']);
+    Route::post('/knowledge', [KnowledgeController::class, 'store']);
+    Route::put('/knowledge/{knowledgeDocument}', [KnowledgeController::class, 'update']);
+    Route::delete('/knowledge/{knowledgeDocument}', [KnowledgeController::class, 'destroy']);
+    Route::get('/knowledge/{knowledgeDocument}/download', [KnowledgeController::class, 'download']);
+
+    // ── Deliverables ────────────────────────────────────────────────
+    Route::get('/deliverables', [DeliverableController::class, 'index']);
+    Route::post('/deliverables', [DeliverableController::class, 'store']);
+    Route::put('/deliverables/{deliverable}', [DeliverableController::class, 'update']);
+    Route::delete('/deliverables/{deliverable}', [DeliverableController::class, 'destroy']);
+
+    // ── Announcements ──────────────────────────────────────────────
+    Route::get('/announcements', [AnnouncementController::class, 'index']);
+    Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show']);
+
+    // ── Analytics ───────────────────────────────────────────────────
+    Route::get('/analytics/personal', [AnalyticsController::class, 'personal']);
+    Route::get('/analytics/task-trend', [AnalyticsController::class, 'taskTrend']);
 
     // ── Messages (Chat) ─────────────────────────────────────────────
     Route::get('/messages', [ChatController::class, 'getAppMessages']);
@@ -187,5 +240,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/payroll/publish', [\App\Http\Controllers\Api\PayrollController::class, 'adminPublish']);
         Route::post('/payroll/copy-previous', [\App\Http\Controllers\Api\PayrollController::class, 'adminCopyPrevious']);
         Route::post('/payroll/{user}', [\App\Http\Controllers\Api\PayrollController::class, 'adminStore']);
+
+        // Announcements Management
+        Route::get('/announcements', [AnnouncementController::class, 'adminIndex']);
+        Route::post('/announcements', [AnnouncementController::class, 'store']);
+        Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update']);
+        Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
+
+        // Analytics
+        Route::get('/analytics', [AnalyticsController::class, 'adminIndex']);
     });
 });

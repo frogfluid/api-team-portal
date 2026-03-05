@@ -107,7 +107,7 @@ class ReviewController extends Controller
             $quota->increment($field, (float) $workSchedule->leave_days);
         }
 
-        return response()->json(['message' => 'Schedule approved.']);
+        return response()->json(['success' => true, 'message' => 'Schedule approved.', 'data' => null]);
     }
 
     public function rejectSchedule(Request $request, WorkSchedule $workSchedule): JsonResponse
@@ -125,7 +125,7 @@ class ReviewController extends Controller
             'approved_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Schedule rejected.']);
+        return response()->json(['success' => true, 'message' => 'Schedule rejected.', 'data' => null]);
     }
 
     public function approveDaily(Request $request, WorkDailyLog $dailyLog): JsonResponse
@@ -135,7 +135,7 @@ class ReviewController extends Controller
 
         $dailyLog->update(['status' => 'approved']);
 
-        return response()->json(['message' => 'Daily log approved.']);
+        return response()->json(['success' => true, 'message' => 'Daily log approved.', 'data' => null]);
     }
 
     public function rejectDaily(Request $request, WorkDailyLog $dailyLog): JsonResponse
@@ -145,7 +145,7 @@ class ReviewController extends Controller
 
         $dailyLog->update(['status' => 'rejected']);
 
-        return response()->json(['message' => 'Daily log rejected.']);
+        return response()->json(['success' => true, 'message' => 'Daily log rejected.', 'data' => null]);
     }
 
     public function commentDaily(Request $request, WorkDailyLog $dailyLog): JsonResponse
@@ -169,7 +169,7 @@ class ReviewController extends Controller
 
         $weeklyReport->update(['status' => 'approved']);
 
-        return response()->json(['message' => 'Weekly report approved.']);
+        return response()->json(['success' => true, 'message' => 'Weekly report approved.', 'data' => null]);
     }
 
     public function rejectWeekly(Request $request, WeeklyReport $weeklyReport): JsonResponse
@@ -179,7 +179,7 @@ class ReviewController extends Controller
 
         $weeklyReport->update(['status' => 'rejected']);
 
-        return response()->json(['message' => 'Weekly report rejected.']);
+        return response()->json(['success' => true, 'message' => 'Weekly report rejected.', 'data' => null]);
     }
 
     public function commentWeekly(Request $request, WeeklyReport $weeklyReport): JsonResponse

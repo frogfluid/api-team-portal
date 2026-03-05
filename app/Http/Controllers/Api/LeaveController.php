@@ -17,7 +17,9 @@ use Illuminate\Validation\ValidationException;
 
 class LeaveController extends Controller
 {
-    public function __construct(private readonly LeaveQuotaService $leaveQuotaService) {}
+    public function __construct(private readonly LeaveQuotaService $leaveQuotaService)
+    {
+    }
 
     public function index(Request $request): JsonResponse
     {
@@ -33,7 +35,7 @@ class LeaveController extends Controller
             ->limit(50)
             ->get();
 
-        return response()->json($leaves->map(fn ($l) => $this->transformLeave($l, $timezone))->values());
+        return response()->json($leaves->map(fn($l) => $this->transformLeave($l, $timezone))->values());
     }
 
     public function store(Request $request): JsonResponse
@@ -86,7 +88,8 @@ class LeaveController extends Controller
 
     public function update(Request $request, WorkSchedule $leave): JsonResponse
     {
-        if ($leave->type !== 'leave') abort(404);
+        if ($leave->type !== 'leave')
+            abort(404);
         $this->authorize('update', $leave);
 
         $request->validate([
@@ -126,7 +129,8 @@ class LeaveController extends Controller
 
     public function destroy(Request $request, WorkSchedule $leave): JsonResponse
     {
-        if ($leave->type !== 'leave') abort(404);
+        if ($leave->type !== 'leave')
+            abort(404);
         $this->authorize('delete', $leave);
 
         DB::transaction(function () use ($leave) {
@@ -178,7 +182,7 @@ class LeaveController extends Controller
         $field = $leaveType === 'sick' ? 'sick_used' : 'annual_used';
         $quota->increment($field, (float) $leave->leave_days);
 
-        return response()->json(['message' => 'Leave approved.']);
+        return response()->json(['success' => true, 'message' => 'Leave approved.', 'data' => null]);
     }
 
     public function reject(Request $request, WorkSchedule $leave): JsonResponse
@@ -193,7 +197,7 @@ class LeaveController extends Controller
             'approved_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Leave rejected.']);
+        return response()->json(['success' => true, 'message' => 'Leave rejected.', 'data' => null]);
     }
 
     private function transformLeave(WorkSchedule $leave, string $timezone = 'Asia/Tokyo'): array
