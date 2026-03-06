@@ -119,42 +119,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/{message}/revoke', [ChatController::class, 'revokeMessage']);
 
     // ── Channels ────────────────────────────────────────────────────
-    Route::get('/channels', function (\Illuminate\Http\Request $request) {
-        $user = $request->user();
-        $query = \App\Models\Channel::where('type', 'public');
-        if (!$user->isExecutive()) {
-            $query->where('name', '!=', 'Executive Board');
-        }
-        $channels = $query->orderBy('name')->get();
-
-        // Also include user's private channels (DMs)
-        $privateChannels = $user->channels()->where('type', 'private')->get();
-
-        $all = $channels->merge($privateChannels)->unique('id')->values();
-
-        return response()->json($all->map(function ($c) use ($user) {
-            $lastRead = $c->users()->where('users.id', $user->id)->first()?->pivot?->last_read_at;
-            return [
-                'id' => $c->id,
-                'name' => $c->name,
-                'description' => $c->description,
-                'type' => $c->type,
-                'unread_count' => $lastRead
-                    ? $c->messages()->where('created_at', '>', $lastRead)->count()
-                    : $c->messages()->count(),
-            ];
-        }));
-    });
+    Route::get('/channels', [ChatController::class, 'getAppChannels']);
     Route::get('/channels/{channel}/messages', [ChatController::class, 'getMessages']);
 
     // ── Notifications ───────────────────────────────────────────────
     Route::get('/notifications', [ApiNotificationController::class, 'index']);
     Route::post('/notifications/{notification}/read', [ApiNotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [ApiNotificationController::class, 'markAllAsRead']);
-    Route::post('/notifications/broadcast', function (\Illuminate\Http\Request $request) {
-        // API version: just return success
-        return response()->json(['message' => 'Broadcast sent.']);
-    });
+    Route::post('/notifications/broadcast', [ApiNotificationController::class, 'broadcast']);
 
     // ── Daily Logs ──────────────────────────────────────────────────
     Route::get('/daily-logs', [DailyLogController::class, 'index']);

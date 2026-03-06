@@ -27,7 +27,7 @@ class AnalyticsController extends Controller
         $completedTasks = Task::where('status', 'completed')->count();
         $inProgressTasks = Task::where('status', 'in_progress')->count();
         $overdueTasks = Task::where('status', '!=', 'completed')
-            ->where('due_date', '<', $now)->count();
+            ->where('due_at', '<', $now)->count();
 
         // Tasks by status
         $tasksByStatus = Task::select('status', DB::raw('count(*) as count'))
@@ -40,7 +40,7 @@ class AnalyticsController extends Controller
         // Top 5 contributors (by completed tasks this month)
         $topContributors = User::select('users.id', 'users.name', 'users.avatar_path')
             ->leftJoin('tasks', function ($join) use ($now) {
-                $join->on('users.id', '=', 'tasks.user_id')
+                $join->on('users.id', '=', 'tasks.owner_id')
                     ->where('tasks.status', 'completed')
                     ->whereMonth('tasks.updated_at', $now->month)
                     ->whereYear('tasks.updated_at', $now->year);
@@ -54,7 +54,7 @@ class AnalyticsController extends Controller
                 'id' => $u->id,
                 'name' => $u->name,
                 'avatar_url' => $u->avatar_url ?? null,
-                'completed_count' => $u->completed_count,
+                'completed_count' => (int) $u->completed_count,
             ]);
 
         // Team attendance this month
@@ -73,7 +73,7 @@ class AnalyticsController extends Controller
             $date = $now->copy()->subDays($i);
             $dailyActivity[] = [
                 'date' => $date->format('M d'),
-                'completed' => Task::where('status', 'completed')
+                'completed' => (int) Task::where('status', 'completed')
                     ->whereDate('updated_at', $date->toDateString())->count(),
             ];
         }
@@ -98,11 +98,11 @@ class AnalyticsController extends Controller
                     'active' => $activeProjects,
                 ],
                 'attendance' => [
-                    'active_employees' => $attendanceStats->active_employees ?? 0,
-                    'total_records' => $attendanceStats->total_records ?? 0,
-                    'late_count' => $attendanceStats->late_count ?? 0,
-                    'early_leave_count' => $attendanceStats->early_leave_count ?? 0,
-                    'total_hours' => round(($attendanceStats->total_minutes ?? 0) / 60, 1),
+                    'active_employees' => (int) ($attendanceStats->active_employees ?? 0),
+                    'total_records' => (int) ($attendanceStats->total_records ?? 0),
+                    'late_count' => (int) ($attendanceStats->late_count ?? 0),
+                    'early_leave_count' => (int) ($attendanceStats->early_leave_count ?? 0),
+                    'total_hours' => round(((float) ($attendanceStats->total_minutes ?? 0)) / 60, 1),
                 ],
                 'top_contributors' => $topContributors,
                 'daily_activity' => $dailyActivity,
@@ -118,11 +118,11 @@ class AnalyticsController extends Controller
         $now = now();
 
         // Task stats
-        $tasks = Task::where('user_id', $user->id);
+        $tasks = Task::mine($user->id);
         $totalTasks = (clone $tasks)->count();
         $completedTasks = (clone $tasks)->where('status', 'completed')->count();
         $overdueTasks = (clone $tasks)->where('status', '!=', 'completed')
-            ->where('due_date', '<', $now)->count();
+            ->where('due_at', '<', $now)->count();
 
         // This month attendance
         $attendance = AttendanceRecord::forUser($user->id)
@@ -173,7 +173,7 @@ class AnalyticsController extends Controller
         for ($i = 3; $i >= 0; $i--) {
             $start = now()->subWeeks($i)->startOfWeek();
             $end = now()->subWeeks($i)->endOfWeek();
-            $completed = Task::where('user_id', $user->id)
+            $completed = Task::mine($user->id)
                 ->where('status', 'completed')
                 ->whereBetween('updated_at', [$start, $end])
                 ->count();

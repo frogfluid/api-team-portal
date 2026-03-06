@@ -44,6 +44,21 @@ class AttendanceRecord extends Model
     {
         return $q->where('date', now()->toDateString());
     }
+    public function scopeForDate($q, $date)
+    {
+        return $q->where('date', $date);
+    }
+
+    public function getStatusColorAttribute(): string
+    {
+        return match ($this->status) {
+            'normal' => '#10B981',
+            'late' => '#F59E0B',
+            'early_leave' => '#EF4444',
+            'absent' => '#6B7280',
+            default => '#6B7280',
+        };
+    }
 
     public function getFormattedDurationAttribute(): string
     {

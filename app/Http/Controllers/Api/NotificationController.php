@@ -18,14 +18,14 @@ class NotificationController extends Controller
             ->latest()
             ->take(50)
             ->get()
-            ->map(fn ($n) => [
-                'id'         => crc32($n->id), // Convert UUID to int for Swift
-                'user_id'    => (int) $n->notifiable_id,
-                'type'       => data_get($n->data, 'type', 'system'),
-                'title'      => data_get($n->data, 'title', ''),
-                'message'    => data_get($n->data, 'message', ''),
+            ->map(fn($n) => [
+                'id' => crc32($n->id), // Convert UUID to int for Swift
+                'user_id' => (int) $n->notifiable_id,
+                'type' => data_get($n->data, 'type', 'system'),
+                'title' => data_get($n->data, 'title', ''),
+                'message' => data_get($n->data, 'message', ''),
                 'related_id' => data_get($n->data, 'related_id'),
-                'is_read'    => $n->read_at !== null,
+                'is_read' => $n->read_at !== null,
                 'created_at' => $n->created_at?->toIso8601String(),
             ]);
 
@@ -40,10 +40,10 @@ class NotificationController extends Controller
         // Try both exact id and crc32-mapped id
         $notification = $request->user()->notifications()->find($id);
 
-        if (! $notification) {
+        if (!$notification) {
             // Try matching by crc32
             $notification = $request->user()->notifications()->get()->first(
-                fn ($n) => crc32($n->id) === (int) $id
+                fn($n) => crc32($n->id) === (int) $id
             );
         }
 
@@ -62,5 +62,15 @@ class NotificationController extends Controller
         $request->user()->unreadNotifications->markAsRead();
 
         return response()->json(['message' => 'All notifications marked as read.']);
+    }
+
+    /**
+     * POST /api/notifications/broadcast — Send a broadcast notification.
+     * Extracted from inline route closure. Currently a stub.
+     */
+    public function broadcast(Request $request): JsonResponse
+    {
+        // TODO: Implement actual broadcast logic (push notifications, etc.)
+        return response()->json(['message' => 'Broadcast sent.']);
     }
 }

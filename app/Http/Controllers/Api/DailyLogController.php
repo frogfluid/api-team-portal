@@ -25,7 +25,7 @@ class DailyLogController extends Controller
             ->limit(30)
             ->get();
 
-        return response()->json($logs->map(fn ($l) => $this->transformDailyLog($l))->values());
+        return response()->json($logs->map(fn($l) => $this->transformDailyLog($l))->values());
     }
 
     public function show(Request $request, $id = null): JsonResponse
@@ -52,8 +52,6 @@ class DailyLogController extends Controller
         $targetDate = $dateParam ? Carbon::parse($dateParam)->startOfDay() : Carbon::today();
 
         $data = $request->validate([
-            'started_at' => ['nullable', 'date'],
-            'ended_at' => ['nullable', 'date', 'after_or_equal:started_at'],
             'note' => ['nullable', 'string'],
             'action' => ['nullable', 'in:save,submit'],
         ]);
@@ -63,8 +61,6 @@ class DailyLogController extends Controller
         $log = $this->findOrCreateLog($user->id, $targetDate);
 
         $log->fill([
-            'started_at' => $data['started_at'] ?? null,
-            'ended_at' => $data['ended_at'] ?? null,
             'note' => $data['note'] ?? null,
         ]);
 
@@ -72,6 +68,8 @@ class DailyLogController extends Controller
             $minutes = $log->started_at->diffInMinutes($log->ended_at);
             $minutes = max(0, $minutes - (int) $log->break_minutes);
             $log->worked_minutes = $minutes;
+        } else {
+            $log->worked_minutes = null;
         }
 
         if ($action === 'submit') {
@@ -107,6 +105,9 @@ class DailyLogController extends Controller
             'id' => $log->id,
             'user_id' => $log->user_id,
             'date' => $log->work_date?->toDateString(),
+            'started_at' => $log->started_at?->toIso8601String(),
+            'ended_at' => $log->ended_at?->toIso8601String(),
+            'worked_minutes' => $log->worked_minutes,
             'work_summary' => $log->note ?? '',
             'completed_tasks' => '',
             'tomorrow_plan' => '',
@@ -120,7 +121,8 @@ class DailyLogController extends Controller
     {
         $dateKey = $date->toDateString();
         $existing = WorkDailyLog::where('user_id', $userId)->whereDate('work_date', $dateKey)->first();
-        if ($existing) return $existing;
+        if ($existing)
+            return $existing;
 
         try {
             return WorkDailyLog::create([

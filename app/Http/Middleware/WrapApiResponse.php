@@ -21,7 +21,7 @@ class WrapApiResponse
         $response = $next($request);
 
         // Only process JSON responses
-        if (! $response instanceof JsonResponse) {
+        if (!$response instanceof JsonResponse) {
             return $response;
         }
 
@@ -29,26 +29,26 @@ class WrapApiResponse
         $statusCode = $response->getStatusCode();
 
         // Skip if already wrapped (has 'success' key as associative array)
-        if (is_array($data) && ! array_is_list($data) && array_key_exists('success', $data)) {
+        if (is_array($data) && !array_is_list($data) && array_key_exists('success', $data)) {
             return $response;
         }
 
         // Skip token responses (login / refresh) — iOS decodes these directly
-        if (is_array($data) && ! array_is_list($data) && isset($data['token'])) {
+        if (is_array($data) && !array_is_list($data) && isset($data['token'])) {
             return $response;
         }
 
         // ── Error responses (4xx, 5xx) ──────────────────────────────
         if ($statusCode >= 400) {
             $message = 'Error';
-            if (is_array($data) && ! array_is_list($data)) {
+            if (is_array($data) && !array_is_list($data)) {
                 $message = $data['message'] ?? 'Error';
             }
 
             return response()->json([
                 'success' => false,
                 'message' => $message,
-                'data'    => null,
+                'data' => null,
             ], $statusCode);
         }
 
@@ -57,12 +57,19 @@ class WrapApiResponse
         $wrappedData = $data;
 
         // Extract 'message' from associative arrays and move it to the wrapper level
-        if (is_array($data) && ! array_is_list($data) && isset($data['message'])) {
-            $message = $data['message'];
-            unset($wrappedData['message']);
+        if (is_array($data) && !array_is_list($data)) {
+            if (isset($data['message'])) {
+                $message = $data['message'];
+                unset($wrappedData['message']);
+            }
+
+            // If the controller returned a 'data' key, unwrap it to avoid {data: {data: ...}}
+            if (array_key_exists('data', $wrappedData) && count($wrappedData) === 1) {
+                $wrappedData = $wrappedData['data'];
+            }
 
             // If only message was present, data becomes null
-            if (empty($wrappedData)) {
+            if (is_array($wrappedData) && empty($wrappedData)) {
                 $wrappedData = null;
             }
         }
@@ -70,7 +77,7 @@ class WrapApiResponse
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $wrappedData,
+            'data' => $wrappedData,
         ]);
     }
 }

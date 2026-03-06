@@ -199,7 +199,10 @@ class ChatController extends Controller
 
         $message->load(['user:id,name,role,avatar_path', 'attachments']);
 
-        return response()->json($this->transformMessage($message));
+        return response()->json([
+            'success' => true,
+            'data' => 'Message revoked successfully',
+        ]);
     }
 
     public function previewAttachment(Request $request, Attachment $attachment)
@@ -435,11 +438,18 @@ class ChatController extends Controller
         $privateChannels = $user->channels()->where('type', 'private')->get();
         $allChannelIds = $channels->pluck('id')->merge($privateChannels->pluck('id'))->unique();
 
-        $messages = Message::whereIn('channel_id', $allChannelIds)
+        $query = Message::whereIn('channel_id', $allChannelIds)
             ->with(['user:id,name,role,avatar_path', 'attachments', 'replyTo.user:id,name'])
-            ->latest()
-            ->limit(500)
-            ->get();
+            ->latest();
+
+        // Incremental sync: only return messages updated after a given timestamp
+        if ($request->filled('updated_since')) {
+            $query->where('updated_at', '>', $request->updated_since);
+        }
+
+        // Pagination support (default 100, max 500)
+        $limit = min($request->integer('per_page', 100), 500);
+        $messages = $query->limit($limit)->get();
 
         $mapped = $messages->map(function ($msg) use ($user) {
             $channel = $msg->channel;
@@ -466,17 +476,19 @@ class ChatController extends Controller
         $request->validate([
             'content' => ['nullable', 'string'],
             'channelId' => ['nullable', 'string'],
+            'channel_id' => ['nullable', 'string'],
             'recipientId' => ['nullable', 'integer'],
+            'recipient_id' => ['nullable', 'integer'],
             'attachments.*' => ['nullable', 'file', 'max:51200'],
             'attachment_ids' => ['nullable', 'array'],
             'attachment_ids.*' => ['integer', 'exists:attachments,id'],
         ]);
 
-        $channelId = $request->input('channelId');
-        $recipientId = $request->input('recipientId');
+        $channelId = $request->input('channelId') ?? $request->input('channel_id');
+        $recipientId = $request->input('recipientId') ?? $request->input('recipient_id');
         $content = $request->input('content', '');
         $files = $request->file('attachments') ?? [];
-        $attachmentIds = $request->input('attachment_ids', []);
+        $attachmentIds = $request->input('attachment_ids') ?? $request->input('attachmentIds') ?? [];
         $channel = null;
 
         if ($content === '' && count($files) === 0 && count($attachmentIds) === 0) {
@@ -505,9 +517,18 @@ class ChatController extends Controller
 
         $this->ensureChannelAccess($request, $channel);
 
+        $replyToId = $request->input('reply_to_id') ?? $request->input('replyToId');
+        $mentionIds = collect($request->input('mentioned_user_ids') ?? $request->input('mentionedUserIds') ?? [])
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
+            ->unique()
+            ->values();
+
         $message = $channel->messages()->create([
             'user_id' => auth()->id(),
             'content' => $content,
+            'reply_to_id' => $replyToId,
+            'mentioned_user_ids' => $mentionIds->all(),
         ]);
 
         $channel->users()->syncWithoutDetaching([
@@ -541,7 +562,11 @@ class ChatController extends Controller
 
         $message->load(['user:id,name,role,avatar_path', 'attachments', 'replyTo.user:id,name']);
 
-        broadcast(new \App\Events\MessageSent($message))->toOthers();
+        try {
+            broadcast(new \App\Events\MessageSent($message))->toOthers();
+        } catch (\Throwable $e) {
+            // Broadcasting is optional — don't crash if event class is missing
+        }
 
         return response()->json($this->transformMessageForApi($message, $recipientId, true));
     }
@@ -604,5 +629,38 @@ class ChatController extends Controller
                 ];
             })->values()->toArray(),
         ];
+    }
+
+    /**
+     * GET /api/channels — Return all visible channels with unread counts (for iOS app).
+     * Extracted from inline route closure for maintainability.
+     */
+    public function getAppChannels(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $query = Channel::where('type', 'public');
+        if (!$user->isExecutive()) {
+            $query->where('name', '!=', 'Executive Board');
+        }
+        $channels = $query->orderBy('name')->get();
+
+        // Also include user's private channels (DMs)
+        $privateChannels = $user->channels()->where('type', 'private')->get();
+
+        $all = $channels->merge($privateChannels)->unique('id')->values();
+
+        return response()->json($all->map(function ($c) use ($user) {
+            $lastRead = $c->users()->where('users.id', $user->id)->first()?->pivot?->last_read_at;
+            return [
+                'id' => $c->id,
+                'name' => $c->name,
+                'description' => $c->description,
+                'type' => $c->type,
+                'unread_count' => $lastRead
+                    ? $c->messages()->where('created_at', '>', $lastRead)->count()
+                    : $c->messages()->count(),
+            ];
+        }));
     }
 }

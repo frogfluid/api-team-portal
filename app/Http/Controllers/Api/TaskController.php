@@ -46,10 +46,15 @@ class TaskController extends Controller
             });
         }
 
+        // Incremental sync: only return tasks updated after a given timestamp
+        if ($request->filled('updated_since')) {
+            $q->where('updated_at', '>', $request->updated_since);
+        }
+
         $tasks = $q->paginate($request->integer('per_page', 20));
 
         return response()->json([
-            'tasks' => $tasks->getCollection()->map(fn ($t) => $this->transformTask($t))->values(),
+            'tasks' => $tasks->getCollection()->map(fn($t) => $this->transformTask($t))->values(),
             'total' => $tasks->total(),
         ]);
     }
@@ -176,7 +181,7 @@ class TaskController extends Controller
         ]);
 
         $task->update($request->only(['title', 'description', 'location', 'status', 'priority', 'progress', 'due_at', 'owner_id']));
-        
+
         if ($request->has('participant_ids')) {
             $task->participants()->sync(array_unique($request->participant_ids ?? []));
         }
@@ -255,7 +260,7 @@ class TaskController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        return response()->json($messages->map(fn ($m) => $this->transformTaskMessage($m))->values());
+        return response()->json($messages->map(fn($m) => $this->transformTaskMessage($m))->values());
     }
 
     public function storeMessage(Request $request, Task $task): JsonResponse
@@ -353,7 +358,7 @@ class TaskController extends Controller
         ];
 
         if ($task->relationLoaded('participants')) {
-            $data['participants'] = $task->participants->map(fn ($p) => [
+            $data['participants'] = $task->participants->map(fn($p) => [
                 'id' => (int) ($p->pivot->id ?? $p->id),
                 'task_id' => $task->id,
                 'user_id' => $p->id,
@@ -364,7 +369,7 @@ class TaskController extends Controller
         }
 
         if ($includeDetails && $task->relationLoaded('ownerHistories')) {
-            $data['owner_histories'] = $task->ownerHistories->map(fn ($h) => [
+            $data['owner_histories'] = $task->ownerHistories->map(fn($h) => [
                 'id' => $h->id,
                 'task_id' => $h->task_id,
                 'from_owner_id' => $h->from_owner_id,
@@ -409,7 +414,7 @@ class TaskController extends Controller
             'created_at' => $message->created_at?->toIso8601String(),
             'is_read' => true,
             'attachments' => $message->relationLoaded('attachments')
-                ? $message->attachments->map(fn ($a) => [
+                ? $message->attachments->map(fn($a) => [
                     'id' => $a->id,
                     'file_name' => basename($a->path),
                     'original_name' => $a->original_name,

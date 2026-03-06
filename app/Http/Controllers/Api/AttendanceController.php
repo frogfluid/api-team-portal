@@ -46,6 +46,7 @@ class AttendanceController extends Controller
             ->first();
 
         return response()->json([
+            'success' => true,
             'data' => $record ? $this->transform($record) : null,
             'is_clocked_in' => $record?->clock_in_at !== null,
             'is_clocked_out' => $record?->clock_out_at !== null,
@@ -75,13 +76,14 @@ class AttendanceController extends Controller
             $this->syncDailyLog($user->id, $today, 'started_at', $record->clock_in_at);
 
             return response()->json([
+                'success' => true,
                 'message' => 'Clocked in successfully.',
                 'data' => $this->transform($record),
             ]);
         }
 
         if ($record->clock_out_at) {
-            return response()->json(['message' => 'Already clocked out today.'], 422);
+            return response()->json(['success' => false, 'message' => 'Already clocked out today.', 'data' => null], 422);
         }
 
         // Clock out
@@ -105,6 +107,7 @@ class AttendanceController extends Controller
         $this->syncDailyLog($user->id, $today, 'ended_at', $clockOutTime, $record->clock_in_at);
 
         return response()->json([
+            'success' => true,
             'message' => 'Clocked out successfully.',
             'data' => $this->transform($record),
         ]);
