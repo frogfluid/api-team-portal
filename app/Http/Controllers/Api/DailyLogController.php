@@ -18,12 +18,30 @@ class DailyLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $logs = WorkDailyLog::query()
-            ->where('user_id', $user->id)
+        $scope = $request->query('scope', 'self');
+        $status = $request->query('status');
+        $limit = (int) $request->query('limit', 30);
+        $limit = max(1, min($limit, 200));
+
+        $query = WorkDailyLog::query()
             ->with('user:id,name')
-            ->orderByDesc('work_date')
-            ->limit(30)
-            ->get();
+            ->orderByDesc('work_date');
+
+        $canReview = $user->role instanceof UserRole && $user->role->canReview();
+
+        if ($scope === 'team' && $canReview) {
+            if ($request->filled('user_id')) {
+                $query->where('user_id', (int) $request->query('user_id'));
+            }
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        $logs = $query->limit($limit)->get();
 
         return response()->json($logs->map(fn($l) => $this->transformDailyLog($l))->values());
     }

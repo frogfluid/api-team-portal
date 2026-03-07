@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\UserRole;
 use App\Models\User;
 use App\Models\WorkSchedule;
 use App\Models\WorkScheduleComment;
@@ -23,12 +24,25 @@ class ScheduleController extends Controller
     {
         $user = $request->user();
 
-        $schedules = WorkSchedule::query()
-            ->where('user_id', $user->id)
+        $scope = $request->query('scope', 'self');
+        $limit = (int) $request->query('limit', 50);
+        $limit = max(1, min($limit, 200));
+
+        $query = WorkSchedule::query()
             ->with(['user:id,name', 'approver:id,name'])
-            ->orderByDesc('start_at')
-            ->limit(50)
-            ->get();
+            ->orderByDesc('start_at');
+
+        $canViewAll = $user->role instanceof UserRole && $user->role->canViewAllSchedules();
+
+        if ($scope === 'team' && $canViewAll) {
+            if ($request->filled('user_id')) {
+                $query->where('user_id', (int) $request->query('user_id'));
+            }
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        $schedules = $query->limit($limit)->get();
 
         return response()->json($schedules->map(fn ($s) => $this->transformSchedule($s))->values());
     }
