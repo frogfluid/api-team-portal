@@ -6,9 +6,11 @@ use App\Models\Attachment;
 use App\Models\Channel;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\ApnsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -177,6 +179,30 @@ class ChatController extends Controller
         $message->load(['user:id,name,role,avatar_path', 'attachments', 'replyTo.user:id,name']);
 
         broadcast(new \App\Events\MessageSent($message))->toOthers();
+
+        try {
+            $targets = $this->resolvePushTargets($channel, $request->user());
+            $body = trim((string) $message->content);
+            if ($body === '') {
+                $body = $message->attachments()->exists() ? 'Sent an attachment' : 'New message';
+            }
+
+            app(ApnsService::class)->sendToUsers($targets, [
+                'aps' => [
+                    'alert' => [
+                        'title' => $channel->name ?? 'New message',
+                        'body' => mb_strimwidth($body, 0, 180, '…'),
+                    ],
+                    'sound' => 'default',
+                ],
+                'type' => 'chat',
+                'message_id' => $message->id,
+                'channel_id' => $message->channel_id,
+                'sender_id' => $message->user_id,
+            ], 'chat-' . $channel->id);
+        } catch (\Throwable $e) {
+            \Log::warning('APNs send failed', ['error' => $e->getMessage()]);
+        }
 
         return response()->json($this->transformMessage($message));
     }
@@ -568,6 +594,30 @@ class ChatController extends Controller
             // Broadcasting is optional — don't crash if event class is missing
         }
 
+        try {
+            $targets = $this->resolvePushTargets($channel, $request->user());
+            $body = trim((string) $message->content);
+            if ($body === '') {
+                $body = $message->attachments()->exists() ? 'Sent an attachment' : 'New message';
+            }
+
+            app(ApnsService::class)->sendToUsers($targets, [
+                'aps' => [
+                    'alert' => [
+                        'title' => $channel->name ?? 'New message',
+                        'body' => mb_strimwidth($body, 0, 180, '…'),
+                    ],
+                    'sound' => 'default',
+                ],
+                'type' => 'chat',
+                'message_id' => $message->id,
+                'channel_id' => $message->channel_id,
+                'sender_id' => $message->user_id,
+            ], 'chat-' . $channel->id);
+        } catch (\Throwable $e) {
+            \Log::warning('APNs send failed', ['error' => $e->getMessage()]);
+        }
+
         return response()->json($this->transformMessageForApi($message, $recipientId, true));
     }
 
@@ -597,6 +647,20 @@ class ChatController extends Controller
      * Transform a Message model into the format matching Swift MessageData struct.
      * Uses snake_case keys compatible with Swift's convertFromSnakeCase decoder.
      */
+    private function resolvePushTargets(\App\Models\Channel $channel, \App\Models\User $sender)
+    {
+        if ($channel->type === 'public') {
+            $query = \App\Models\User::where('is_active', true)->where('id', '!=', $sender->id);
+            if ($channel->name === 'Executive Board') {
+                $targets = $query->get()->filter(fn($u) => $u->isExecutive())->values();
+                return $targets;
+            }
+            return $query->get();
+        }
+
+        return $channel->users()->where('users.id', '!=', $sender->id)->get();
+    }
+
     private function transformMessageForApi(Message $message, ?int $recipientId = null, bool $isRead = false): array
     {
         $user = $message->user;

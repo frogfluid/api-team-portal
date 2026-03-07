@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\KnowledgeController;
 use App\Http\Controllers\Api\DeliverableController;
 use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\RealtimeController;
 use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\Admin\ReviewController;
 use App\Http\Controllers\Api\Admin\LeaveQuotaController;
@@ -122,11 +123,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/channels', [ChatController::class, 'getAppChannels']);
     Route::get('/channels/{channel}/messages', [ChatController::class, 'getMessages']);
 
+    // ── Realtime (SSE) ─────────────────────────────────────────────
+    Route::get('/realtime/stream', [RealtimeController::class, 'stream']);
+
     // ── Notifications ───────────────────────────────────────────────
     Route::get('/notifications', [ApiNotificationController::class, 'index']);
     Route::post('/notifications/{notification}/read', [ApiNotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [ApiNotificationController::class, 'markAllAsRead']);
     Route::post('/notifications/broadcast', [ApiNotificationController::class, 'broadcast']);
+    Route::post('/notifications/test-push', [ApiNotificationController::class, 'testPush']);
 
     // ── Daily Logs ──────────────────────────────────────────────────
     Route::get('/daily-logs', [DailyLogController::class, 'index']);

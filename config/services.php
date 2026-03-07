@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+
+    'apns' => [
+        'team_id' => env('APNS_TEAM_ID'),
+        'key_id' => env('APNS_KEY_ID'),
+        'key_path' => env('APNS_KEY_PATH'),
+        'topic' => env('APNS_TOPIC', 'com.samurai-plus.teamportal'),
+        'sandbox' => env('APNS_SANDBOX', false),
+    ],
+
 ];
