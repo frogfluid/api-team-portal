@@ -41,3 +41,21 @@ Authorization: Bearer <token>
 | GET | `/api/messages` | List chat messages |
 | GET | `/api/notifications` | List notifications |
 | GET | `/api/payroll` | View payroll records |
+
+## Schema Parity with Web
+
+`api-team-portal` and `team-samuraiplus` (web) share the MySQL database
+`team_samuraiplus`. Migration files are kept in sync between the two repos.
+
+To verify parity:
+
+    php artisan verify:schema
+
+If new web migrations have been added, port them and reconcile:
+
+    # 1. Copy the new migration files from team-samuraiplus/database/migrations/
+    #    into api-team-portal/database/migrations/
+    # 2. Reconcile history (marks already-applied as run, executes net-new):
+    php artisan migrate:reconcile
+
+`SCHEMA_PARITY_WEB_PATH` in .env overrides the default web path.
