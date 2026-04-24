@@ -43,18 +43,15 @@ class ReconcileMigrations extends Command
             // Case 1: create_X_table — check if table already exists.
             if (preg_match('/_create_(?<table>[a-z0-9_]+)_table$/', $name, $m)) {
                 if (Schema::hasTable($m['table'])) {
-                    DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
-                    $this->line("marked as run: {$name}");
+                    $this->markAsRun($name, $batch);
                     continue;
                 }
                 $this->line("executing: {$name}");
                 try {
                     $migration->up();
                 } catch (QueryException $e) {
-                    $msg = strtolower($e->getMessage());
-                    if (str_contains($msg, 'duplicate') || str_contains($msg, 'already exists')) {
-                        DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
-                        $this->line("marked as run: {$name}");
+                    if ($this->isSchemaAlreadyAppliedError($e)) {
+                        $this->markAsRun($name, $batch);
                         continue;
                     }
                     throw $e;
@@ -65,16 +62,14 @@ class ReconcileMigrations extends Command
             }
 
             // Case 2: add/alter/widen/allow/change/extend on an existing table.
-            // Run up(); if it throws a duplicate/exists error, treat as already applied.
+            // Run up(); if it throws a schema-collision error, treat as already applied.
             try {
                 $migration->up();
                 DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
                 $this->info("executed: {$name}");
             } catch (QueryException $e) {
-                $msg = strtolower($e->getMessage());
-                if (str_contains($msg, 'duplicate') || str_contains($msg, 'already exists')) {
-                    DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
-                    $this->line("marked as run: {$name}");
+                if ($this->isSchemaAlreadyAppliedError($e)) {
+                    $this->markAsRun($name, $batch);
                     continue;
                 }
                 throw $e;
@@ -82,5 +77,28 @@ class ReconcileMigrations extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Detect SQLSTATE driver-error codes indicating the schema change is already in place.
+     * Matches only schema-collision codes — not data-integrity collisions like 1062
+     * (Duplicate entry for key PRIMARY), which must still surface as real errors.
+     */
+    private function isSchemaAlreadyAppliedError(QueryException $e): bool
+    {
+        $code = (int) ($e->errorInfo[1] ?? 0);
+
+        // 1050 — Table already exists
+        // 1060 — Duplicate column name
+        // 1061 — Duplicate key name
+        // 1826 — Duplicate foreign key constraint name
+        // 1091 — Can't DROP; check column/key exists (for idempotent dropIfExists mistakes)
+        return in_array($code, [1050, 1060, 1061, 1826, 1091], true);
+    }
+
+    private function markAsRun(string $name, int $batch): void
+    {
+        DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
+        $this->line("marked as run: {$name}");
     }
 }
