@@ -4,6 +4,7 @@ use App\Enums\ContractRenewalStatus;
 use App\Models\AppSetting;
 use App\Models\Employee;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -26,20 +27,8 @@ uses(RefreshDatabase::class);
  * derived accessors on Employee.
  */
 
-function makeEmployee(array $overrides = []): Employee
-{
-    $user = User::factory()->create();
-
-    return Employee::create(array_merge([
-        'user_id'         => $user->id,
-        'employee_no'     => 'E'.fake()->unique()->numerify('####'),
-        'employment_type' => 'full_time',
-        'status'          => 'active',
-    ], $overrides));
-}
-
 it('mass-assigns all new contract fields and persists them', function () {
-    $employee = makeEmployee([
+    $employee = Employee::factory()->create([
         'contract_start_date'         => '2026-01-01',
         'contract_end_date'           => '2026-12-31',
         'contract_renewal_status'     => ContractRenewalStatus::PENDING_DISCUSSION->value,
@@ -63,7 +52,7 @@ it('mass-assigns all new contract fields and persists them', function () {
 });
 
 it('casts contract_renewal_status to the ContractRenewalStatus enum', function () {
-    $employee = makeEmployee([
+    $employee = Employee::factory()->create([
         'contract_renewal_status' => 'renewed',
     ]);
 
@@ -74,7 +63,7 @@ it('casts contract_renewal_status to the ContractRenewalStatus enum', function (
 });
 
 it('casts contract_hours_per_day and contract_hours_per_week to decimal:2 (string on read)', function () {
-    $employee = makeEmployee([
+    $employee = Employee::factory()->create([
         'contract_hours_per_day'  => 7.5,
         'contract_hours_per_week' => 37.5,
     ]);
@@ -89,12 +78,12 @@ it('casts contract_hours_per_day and contract_hours_per_week to decimal:2 (strin
 
 describe('contract_status accessor', function () {
     it('returns "none" when contract_end_date is null', function () {
-        $employee = makeEmployee();
+        $employee = Employee::factory()->create();
         expect($employee->contract_status)->toBe('none');
     });
 
     it('returns "expired" when contract_end_date is in the past', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date' => now()->subDays(5)->toDateString(),
         ]);
         expect($employee->fresh()->contract_status)->toBe('expired');
@@ -103,7 +92,7 @@ describe('contract_status accessor', function () {
     it('returns "expiring_soon" when end_date is within contract_expiry_alert_days threshold', function () {
         AppSetting::set('contract_expiry_alert_days', '14');
 
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date' => now()->addDays(7)->toDateString(),
         ]);
 
@@ -113,22 +102,51 @@ describe('contract_status accessor', function () {
     it('returns "active" when end_date is far enough in the future', function () {
         AppSetting::set('contract_expiry_alert_days', '14');
 
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date' => now()->addDays(60)->toDateString(),
         ]);
 
         expect($employee->fresh()->contract_status)->toBe('active');
     });
+
+    it('returns expiring_soon at exactly the alert threshold boundary', function () {
+        // Freeze time so "14 days away" is deterministic regardless of
+        // when the test runs (no clock-drift / DST edge cases).
+        Carbon::setTestNow(Carbon::parse('2026-06-15 10:00:00'));
+        AppSetting::set('contract_expiry_alert_days', '14');
+
+        $employee = Employee::factory()->create([
+            'contract_end_date' => '2026-06-29', // exactly 14 days away → daysLeft === alertDays
+        ]);
+
+        expect($employee->fresh()->contract_status)->toBe('expiring_soon');
+
+        Carbon::setTestNow();
+    });
+
+    it('returns active one day past the alert threshold boundary', function () {
+        // threshold + 1: locks in the strictly-greater-than side of `<=`.
+        Carbon::setTestNow(Carbon::parse('2026-06-15 10:00:00'));
+        AppSetting::set('contract_expiry_alert_days', '14');
+
+        $employee = Employee::factory()->create([
+            'contract_end_date' => '2026-06-30', // 15 days away → daysLeft > alertDays
+        ]);
+
+        expect($employee->fresh()->contract_status)->toBe('active');
+
+        Carbon::setTestNow();
+    });
 });
 
 describe('days_until_contract_expiry accessor', function () {
     it('returns null when there is no contract_end_date', function () {
-        $employee = makeEmployee();
+        $employee = Employee::factory()->create();
         expect($employee->days_until_contract_expiry)->toBeNull();
     });
 
     it('returns zero or negative when contract_end_date is in the past', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date' => now()->subDays(3)->toDateString(),
         ]);
 
@@ -138,7 +156,7 @@ describe('days_until_contract_expiry accessor', function () {
     });
 
     it('returns a positive integer when contract_end_date is in the future', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date' => now()->addDays(10)->toDateString(),
         ]);
 
@@ -150,7 +168,7 @@ describe('days_until_contract_expiry accessor', function () {
 
 describe('resolved_contract_renewal_status accessor', function () {
     it('returns the enum value when contract_renewal_status is a valid enum value', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_renewal_status' => ContractRenewalStatus::RENEWED->value,
         ]);
 
@@ -161,7 +179,7 @@ describe('resolved_contract_renewal_status accessor', function () {
     it('falls back to PENDING_DISCUSSION when expiring_soon and renewal status is null', function () {
         AppSetting::set('contract_expiry_alert_days', '30');
 
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date'       => now()->addDays(10)->toDateString(),
             'contract_renewal_status' => null,
         ]);
@@ -171,7 +189,7 @@ describe('resolved_contract_renewal_status accessor', function () {
     });
 
     it('falls back to PENDING_DISCUSSION when expired and renewal status is null', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date'       => now()->subDays(1)->toDateString(),
             'contract_renewal_status' => null,
         ]);
@@ -183,7 +201,7 @@ describe('resolved_contract_renewal_status accessor', function () {
     it('returns null for active contract with no renewal status set', function () {
         AppSetting::set('contract_expiry_alert_days', '14');
 
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date'       => now()->addDays(90)->toDateString(),
             'contract_renewal_status' => null,
         ]);
@@ -194,7 +212,7 @@ describe('resolved_contract_renewal_status accessor', function () {
 
 describe('should_notify_contract_expiry accessor', function () {
     it('returns false when there is no contract_end_date', function () {
-        $employee = makeEmployee();
+        $employee = Employee::factory()->create();
         expect($employee->should_notify_contract_expiry)->toBeFalse();
     });
 
@@ -209,7 +227,7 @@ describe('should_notify_contract_expiry accessor', function () {
     });
 
     it('returns true when expired and resolved status is PENDING_DISCUSSION', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date'       => now()->subDays(2)->toDateString(),
             'contract_renewal_status' => null, // resolves to PENDING_DISCUSSION via fallback
         ]);
@@ -218,7 +236,7 @@ describe('should_notify_contract_expiry accessor', function () {
     });
 
     it('returns false when renewal status is RENEWED (final)', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date'       => now()->addDays(5)->toDateString(),
             'contract_renewal_status' => ContractRenewalStatus::RENEWED->value,
         ]);
@@ -229,7 +247,7 @@ describe('should_notify_contract_expiry accessor', function () {
     it('returns true when contract_end_date is in the future and no renewal_status is set', function () {
         AppSetting::set('contract_expiry_alert_days', '14');
 
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_end_date'       => now()->addDays(90)->toDateString(),
             'contract_renewal_status' => null,
         ]);
@@ -240,7 +258,7 @@ describe('should_notify_contract_expiry accessor', function () {
 
 describe('effective_contract_hours accessors', function () {
     it('returns daily and daily*5 when only daily is given', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_hours_per_day'  => 8.00,
             'contract_hours_per_week' => null,
         ]);
@@ -251,7 +269,7 @@ describe('effective_contract_hours accessors', function () {
     });
 
     it('falls back per_day = weekly/5 when only weekly is given', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_hours_per_day'  => null,
             'contract_hours_per_week' => 37.5,
         ]);
@@ -262,7 +280,7 @@ describe('effective_contract_hours accessors', function () {
     });
 
     it('prefers stored values when both are given', function () {
-        $employee = makeEmployee([
+        $employee = Employee::factory()->create([
             'contract_hours_per_day'  => 8.00,
             'contract_hours_per_week' => 42.00,
         ]);
@@ -274,7 +292,7 @@ describe('effective_contract_hours accessors', function () {
     });
 
     it('returns null for both when both are null', function () {
-        $employee = makeEmployee();
+        $employee = Employee::factory()->create();
 
         $fresh = $employee->fresh();
         expect($fresh->effective_contract_hours_per_day)->toBeNull();
