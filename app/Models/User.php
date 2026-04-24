@@ -23,6 +23,7 @@ class User extends Authenticatable
         'preferences',
         'avatar_path',
         'is_active',
+        'responsibilities',
     ];
 
     protected $appends = [
@@ -39,6 +40,7 @@ class User extends Authenticatable
         'role' => UserRole::class,
         'department' => Department::class,
         'preferences' => 'array',
+        'responsibilities' => 'array',
         'avatar_path' => 'string',
         'is_active' => 'boolean',
         'email_verified_at' => 'datetime',

@@ -7,7 +7,7 @@ enum UserRole: string
     case ADMIN = 'admin';
     case MANAGER = 'manager';
     case MEMBER = 'member';
-    case INTERN = 'intern';
+    // INTERN removed — migrated to MEMBER per migration 2026_04_21_100000.
 
     /**
      * 显示名称
@@ -16,9 +16,8 @@ enum UserRole: string
     {
         return match ($this) {
             self::ADMIN => 'Admin',
-            self::MANAGER => 'Manager',
+            self::MANAGER => 'System Manager',
             self::MEMBER => 'Member',
-            self::INTERN => 'Intern',
         };
     }
 
@@ -31,7 +30,6 @@ enum UserRole: string
             self::ADMIN => 100,
             self::MANAGER => 60,
             self::MEMBER => 40,
-            self::INTERN => 20,
         };
     }
 
@@ -44,7 +42,6 @@ enum UserRole: string
             self::ADMIN => 'Executive',
             self::MANAGER => 'Management',
             self::MEMBER => 'Employee',
-            self::INTERN => 'Intern',
         };
     }
 
@@ -121,7 +118,6 @@ enum UserRole: string
             self::ADMIN => '#DC2626',
             self::MANAGER => '#0891B2',
             self::MEMBER => '#059669',
-            self::INTERN => '#6B7280',
         };
     }
 
@@ -134,7 +130,6 @@ enum UserRole: string
             self::ADMIN => 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50',
             self::MANAGER => 'bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-400 dark:border-cyan-800/50',
             self::MEMBER => 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50',
-            self::INTERN => 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700',
         };
     }
 }

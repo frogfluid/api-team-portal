@@ -25,7 +25,7 @@ class AdminLeaveQuotaManagementTest extends TestCase
         $admin = $this->createUser(UserRole::ADMIN);
         $manager = $this->createUser(UserRole::MANAGER, ['name' => 'Manager A']);
         $member = $this->createUser(UserRole::MEMBER, ['name' => 'Member A']);
-        $intern = $this->createUser(UserRole::INTERN, ['name' => 'Intern A']);
+        $intern = $this->createUser(UserRole::MEMBER, ['name' => 'Intern A']);
 
         $response = $this->actingAs($admin)->get(route('app.reviews.index'));
 

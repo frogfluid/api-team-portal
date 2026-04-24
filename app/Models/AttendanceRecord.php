@@ -21,6 +21,7 @@ class AttendanceRecord extends Model
         'status',
         'note',
         'is_manual_override',
+        'is_auto_clocked_out',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class AttendanceRecord extends Model
         'clock_out_at' => 'datetime',
         'work_duration_minutes' => 'integer',
         'is_manual_override' => 'boolean',
+        'is_auto_clocked_out' => 'boolean',
     ];
 
     public function user(): BelongsTo

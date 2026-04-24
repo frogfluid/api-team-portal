@@ -94,7 +94,7 @@ class AdminAndInternSeeder extends Seeder
                 [
                     'name' => $data['name'],
                     'password' => $data['password'],
-                    'role' => 'intern',
+                    'role' => 'member',
                     'is_active' => 1,
                 ]
             );
