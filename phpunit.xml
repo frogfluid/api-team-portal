@@ -19,7 +19,7 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="CACHE_DRIVER" value="array"/>
-        <env name="DB_DATABASE" value="testing"/>
+        <env name="DB_DATABASE" value="team_samurai_plus_testing"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
     </php>
 </phpunit>
