@@ -32,7 +32,7 @@ Artisan::command('db:testusers', function () {
         ['name' => 'CEO Test (高层)', 'email' => 'ceo@test.com', 'role' => UserRole::ADMIN, 'department' => Department::EXECUTIVE],
         ['name' => 'Manager Test (中层)', 'email' => 'manager@test.com', 'role' => UserRole::MANAGER, 'department' => Department::ENGINEERING],
         ['name' => 'Member Test (普通)', 'email' => 'member@test.com', 'role' => UserRole::MEMBER, 'department' => Department::MARKETING],
-        ['name' => 'PartTime Test (兼职)', 'email' => 'parttime@test.com', 'role' => UserRole::INTERN, 'department' => Department::DESIGN],
+        ['name' => 'PartTime Test (兼职)', 'email' => 'parttime@test.com', 'role' => UserRole::MEMBER, 'department' => Department::DESIGN],
         ['name' => 'Contractor Test (外包)', 'email' => 'contractor@test.com', 'role' => UserRole::MEMBER, 'department' => Department::OPERATIONS],
     ];
 

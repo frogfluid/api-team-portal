@@ -26,7 +26,7 @@ class NotificationBroadcastTest extends TestCase
         $admin = $this->createUser(UserRole::ADMIN);
         $manager = $this->createUser(UserRole::MANAGER);
         $member = $this->createUser(UserRole::MEMBER);
-        $intern = $this->createUser(UserRole::INTERN);
+        $intern = $this->createUser(UserRole::MEMBER);
 
         $response = $this->actingAs($admin)->post(route('app.notifications.broadcast'), [
             'title' => 'Office Notice',

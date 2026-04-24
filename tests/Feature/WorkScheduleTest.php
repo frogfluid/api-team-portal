@@ -141,7 +141,7 @@ class WorkScheduleTest extends TestCase
 
     public function test_intern_cannot_update_others_schedule(): void
     {
-        $intern = $this->createUser(UserRole::INTERN);
+        $intern = $this->createUser(UserRole::MEMBER);
         $member = $this->createUser(UserRole::MEMBER);
         $schedule = $this->createSchedule($member);
 
