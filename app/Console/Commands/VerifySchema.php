@@ -19,6 +19,11 @@ class VerifySchema extends Command
             return self::FAILURE;
         }
 
+        if (! is_dir($apiPath)) {
+            $this->error("API migrations path not found: {$apiPath}");
+            return self::FAILURE;
+        }
+
         $web = collect(scandir($webPath))->filter(fn ($f) => str_ends_with($f, '.php'))->values();
         $api = collect(scandir($apiPath))->filter(fn ($f) => str_ends_with($f, '.php'))->values();
 
