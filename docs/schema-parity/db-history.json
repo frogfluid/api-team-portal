@@ -1,0 +1,362 @@
+[
+    {
+        "migration": "0001_01_01_000000_create_users_table",
+        "batch": 1
+    },
+    {
+        "migration": "0001_01_01_000001_create_cache_table",
+        "batch": 1
+    },
+    {
+        "migration": "0001_01_01_000002_create_jobs_table",
+        "batch": 1
+    },
+    {
+        "migration": "2018_01_01_000000_create_action_events_table",
+        "batch": 1
+    },
+    {
+        "migration": "2019_05_10_000000_add_fields_to_action_events_table",
+        "batch": 1
+    },
+    {
+        "migration": "2021_08_25_193039_create_nova_notifications_table",
+        "batch": 1
+    },
+    {
+        "migration": "2022_04_26_000000_add_fields_to_nova_notifications_table",
+        "batch": 1
+    },
+    {
+        "migration": "2022_12_19_000000_create_field_attachments_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_14_114953_add_two_factor_columns_to_users_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_14_120032_add_role_column_to_users_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_14_120823_create_employees_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_062818_create_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_065103_add_start_at_cloumn_to_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_165535_create_tasks_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_165601_create_task_participants_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_165701_create_task_messages_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_165751_create_task_attachments_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_21_165818_create_task_owner_histories_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_23_162059_create_work_daily_logs_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_23_162105_create_weekly_reports_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_23_162110_create_attachments_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_23_170315_add_profile_fields_to_employees_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_23_185638_add_legal_name_to_employees_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_24_154522_create_notifications_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_24_161436_add_department_to_users_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_24_172754_create_channels_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_24_172754_create_messages_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_24_194833_add_type_to_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_24_205016_create_leave_quotas_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000001_ensure_type_column_exists_on_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000002_add_location_to_tasks_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000003_add_preferences_to_users_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000006_add_revoke_fields_to_messages_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000007_add_avatar_path_to_users_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000008_add_manager_comment_to_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000009_add_all_day_to_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_000010_create_work_schedule_comments_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_25_175417_add_chat_features_to_messages_and_channels_tables",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_26_000011_add_performance_indexes_to_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_26_000012_add_leave_fields_to_work_schedules_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_27_100000_add_repeat_group_to_work_schedules",
+        "batch": 1
+    },
+    {
+        "migration": "2026_02_27_100001_add_completed_at_to_task_participants",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_01_011351_create_personal_access_tokens_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_01_020000_create_payrolls_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_01_020001_create_payment_methods_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_01_034118_add_swift_bic_email_to_payment_methods",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_01_160434_add_admin_comment_to_work_daily_logs_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_01_160435_add_admin_comment_to_weekly_reports_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_02_125513_create_announcements_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_02_125808_create_knowledge_documents_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_03_140000_create_message_reactions_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_03_160000_create_projects_and_milestones_tables",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_03_162900_create_okr_tables",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_03_163500_add_org_chart_fields_to_users",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_03_164000_create_attendance_records_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_04_163600_change_work_duration_to_unsigned_integer",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_04_164900_create_work_deliverables_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_13_160000_add_performance_indexes_to_messages_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_13_161000_create_audit_logs_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_13_170000_add_performance_indexes_to_frequently_queried_tables",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_13_181444_add_performance_indexes",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_17_172241_create_knowledge_comments_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_19_145700_create_cleaning_duties_table",
+        "batch": 1
+    },
+    {
+        "migration": "2026_03_29_100000_create_monthly_messages_table",
+        "batch": 2
+    },
+    {
+        "migration": "2026_03_29_100001_create_monthly_message_comments_table",
+        "batch": 2
+    },
+    {
+        "migration": "2026_04_07_171535_add_is_remote_to_work_schedules_table",
+        "batch": 3
+    },
+    {
+        "migration": "2026_04_07_194158_add_contract_dates_to_employees_table",
+        "batch": 4
+    },
+    {
+        "migration": "2026_04_07_194221_add_contract_dates_to_employees_table",
+        "batch": 4
+    },
+    {
+        "migration": "2026_04_07_194255_create_app_settings_table",
+        "batch": 4
+    },
+    {
+        "migration": "2026_04_08_150000_add_contract_hours_to_employees_table",
+        "batch": 5
+    },
+    {
+        "migration": "2026_04_08_163000_add_contract_lifecycle_fields_to_employees_table",
+        "batch": 5
+    },
+    {
+        "migration": "2026_04_08_170500_allow_on_leave_status_in_attendance_records",
+        "batch": 5
+    },
+    {
+        "migration": "2026_04_09_120000_add_statutory_deductions_to_payrolls_table",
+        "batch": 6
+    },
+    {
+        "migration": "2026_04_10_100000_add_payslip_fields_to_payrolls_table",
+        "batch": 6
+    },
+    {
+        "migration": "2026_04_13_000000_add_auto_calc_fields_to_payrolls_table",
+        "batch": 7
+    },
+    {
+        "migration": "2026_04_13_171919_create_ai_evaluations_table",
+        "batch": 8
+    },
+    {
+        "migration": "2026_04_13_173810_add_status_to_ai_evaluations_table",
+        "batch": 9
+    },
+    {
+        "migration": "2026_04_14_100000_add_responsibilities_to_users_table",
+        "batch": 10
+    },
+    {
+        "migration": "2026_04_14_100001_add_evaluator_note_to_ai_evaluations_table",
+        "batch": 10
+    },
+    {
+        "migration": "2026_04_14_165200_add_is_auto_clocked_out_to_attendance_records_table",
+        "batch": 10
+    },
+    {
+        "migration": "2026_04_14_171830_create_job_scopes_table",
+        "batch": 10
+    },
+    {
+        "migration": "2026_04_17_100000_create_remote_work_requests_table",
+        "batch": 11
+    },
+    {
+        "migration": "2026_04_17_140000_extend_work_daily_logs_for_review",
+        "batch": 12
+    },
+    {
+        "migration": "2026_02_24_172753_create_channels_table",
+        "batch": 13
+    },
+    {
+        "migration": "2026_04_17_100000_add_chat_medium_columns_to_messages",
+        "batch": 14
+    },
+    {
+        "migration": "2026_04_17_100100_create_message_stars_table",
+        "batch": 15
+    },
+    {
+        "migration": "2026_04_17_100200_add_fulltext_to_messages_content",
+        "batch": 16
+    },
+    {
+        "migration": "2026_04_17_110000_create_shift_submission_lates_table",
+        "batch": 17
+    },
+    {
+        "migration": "2026_04_17_120000_add_dedication_to_attendance_status",
+        "batch": 18
+    },
+    {
+        "migration": "2026_04_17_130000_migrate_legacy_remote_requests",
+        "batch": 19
+    }
+]
