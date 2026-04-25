@@ -165,6 +165,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/remote-work-requests/{remoteWorkRequest}/approve', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'approve']);
     Route::post('/remote-work-requests/{remoteWorkRequest}/reject', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'reject']);
 
+    // ── AI Evaluations (user-side) ──────────────────────────────────
+    Route::get('/evaluations', [\App\Http\Controllers\Api\AiEvaluationController::class, 'index']);
+    Route::get('/evaluations/{evaluation}', [\App\Http\Controllers\Api\AiEvaluationController::class, 'show']);
+
     // ── Work Schedules ──────────────────────────────────────────────
     Route::get('/work-schedules', [ScheduleController::class, 'index']);
     Route::post('/work-schedules', [ScheduleController::class, 'store']);

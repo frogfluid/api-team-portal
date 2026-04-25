@@ -18,7 +18,7 @@ class AiEvaluationFactory extends Factory
         return [
             'user_id'      => User::factory(),
             'evaluator_id' => User::factory(),
-            'year_month'   => now()->format('Y-m'),
+            'year_month'   => now()->subMonths(fake()->unique()->numberBetween(0, 240))->format('Y-m'),
             'model'        => 'gpt-4',
             'status'       => 'pending',
             'content'      => fake()->paragraph(),
