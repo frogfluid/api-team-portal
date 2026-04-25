@@ -244,5 +244,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Analytics
         Route::get('/analytics', [AnalyticsController::class, 'adminIndex']);
+
+        // AI Evaluations Management
+        Route::get('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'index']);
+        Route::post('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'store']);
+        Route::patch('/evaluations/{evaluation}', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'update']);
     });
 });
