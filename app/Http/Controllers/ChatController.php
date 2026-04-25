@@ -680,6 +680,9 @@ class ChatController extends Controller
             'revoked_at' => $message->revoked_at?->toIso8601String(),
             'revoked_by' => $message->revoked_by,
             'mentioned_user_ids' => !empty($message->mentioned_user_ids) ? $message->mentioned_user_ids : null,
+            'pinned_at' => $message->pinned_at?->toIso8601String(),
+            'pinned_by_user_id' => $message->pinned_by_user_id,
+            'link_metadata' => $message->link_metadata,
             'created_at' => $message->created_at?->toIso8601String(),
             'is_read' => $isRead,
             'attachments' => $attachments->map(function ($attachment) {
