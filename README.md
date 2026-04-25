@@ -59,3 +59,34 @@ If new web migrations have been added, port them and reconcile:
     php artisan migrate:reconcile
 
 `SCHEMA_PARITY_WEB_PATH` in .env overrides the default web path.
+
+## Known limitations (Plan 02)
+
+### Deletion sync gap
+
+The five sync endpoints (`/api/notifications`, `/api/daily-logs`, `/api/weekly-reports`, `/api/work-schedules`, `/api/leaves`) and `/api/messages` and `/api/tasks` use `updated_at > updated_since` to filter. Records *deleted* between sync windows are not reported back to the client and may persist as stale entries in client-side caches.
+
+**Mitigation:** clients should issue `?force_full=true` on:
+- first launch after a cold start,
+- post-logout/login,
+- an explicit "pull to refresh" gesture,
+- recovery from any error suspected of corrupting cache state.
+
+A future plan introduces soft-delete + `/sync/tombstones` to close this gap.
+
+### Error envelope
+
+All API JSON responses for non-2xx statuses include an `error_code` field at the top level. v1 codes:
+
+- `VALIDATION_ERROR` (422)
+- `UNAUTHORIZED` (401)
+- `FORBIDDEN` (403)
+- `NOT_FOUND` (404)
+- `PAYROLL_LOCKED` (409)
+- `INTERNAL_ERROR` (500)
+
+Clients should switch on `error_code` rather than `message`.
+
+### Request tracing
+
+Every API response carries an `X-Request-Id` header (UUID v4). When reporting issues, including this value lets the server log be located.
