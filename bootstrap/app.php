@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(append: [
+            \App\Http\Middleware\RequestId::class,
             \App\Http\Middleware\WrapApiResponse::class,
         ]);
         $middleware->alias([
