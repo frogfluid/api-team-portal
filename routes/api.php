@@ -253,5 +253,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'index']);
         Route::post('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'store']);
         Route::patch('/evaluations/{evaluation}', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'update']);
+
+        // Job Scopes Management
+        Route::get('/job-scopes', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'index']);
+        Route::post('/job-scopes', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'store']);
+        Route::patch('/job-scopes/{jobScope}', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'update']);
+        Route::delete('/job-scopes/{jobScope}', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'destroy']);
+        Route::post('/job-scopes/{jobScope}/users', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'assignUsers']);
     });
 });
