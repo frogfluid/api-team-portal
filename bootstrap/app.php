@@ -33,6 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 \Illuminate\Validation\ValidationException::class    => ['VALIDATION_ERROR', 422],
                 \Illuminate\Auth\AuthenticationException::class      => ['UNAUTHORIZED', 401],
                 \Illuminate\Auth\Access\AuthorizationException::class => ['FORBIDDEN', 403],
+                // Laravel's prepareException() converts AuthorizationException → AccessDeniedHttpException
+                // before render callbacks run, so we must map the wrapper too.
+                \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class => ['FORBIDDEN', 403],
                 \Illuminate\Database\Eloquent\ModelNotFoundException::class => ['NOT_FOUND', 404],
                 \Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class => ['NOT_FOUND', 404],
                 \App\Exceptions\PayrollLockedException::class        => ['PAYROLL_LOCKED', 409],

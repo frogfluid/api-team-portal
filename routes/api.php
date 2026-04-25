@@ -156,6 +156,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/leaves/{leave}/approve', [LeaveController::class, 'approve']);
     Route::post('/leaves/{leave}/reject', [LeaveController::class, 'reject']);
 
+    // ── Remote Work Requests ────────────────────────────────────────
+    Route::get('/remote-work-requests', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'index']);
+    Route::get('/remote-work-requests/{remoteWorkRequest}', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'show']);
+    Route::post('/remote-work-requests', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'store']);
+    Route::patch('/remote-work-requests/{remoteWorkRequest}', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'update']);
+    Route::delete('/remote-work-requests/{remoteWorkRequest}', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'destroy']);
+    Route::post('/remote-work-requests/{remoteWorkRequest}/approve', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'approve']);
+    Route::post('/remote-work-requests/{remoteWorkRequest}/reject', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'reject']);
+
     // ── Work Schedules ──────────────────────────────────────────────
     Route::get('/work-schedules', [ScheduleController::class, 'index']);
     Route::post('/work-schedules', [ScheduleController::class, 'store']);

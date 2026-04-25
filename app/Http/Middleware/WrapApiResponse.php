@@ -90,6 +90,6 @@ class WrapApiResponse
             'success' => true,
             'message' => $message,
             'data' => $wrappedData,
-        ]);
+        ], $statusCode);
     }
 }
