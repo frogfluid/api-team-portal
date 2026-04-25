@@ -63,3 +63,57 @@ it('non-admin gets 403', function () {
     $response = $this->actingAs($u, 'sanctum')->getJson('/api/admin/attendance');
     $response->assertStatus(403);
 });
+
+it('admin creates an attendance record via service', function () {
+    $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+    $target = User::factory()->create();
+
+    $payload = [
+        'user_id' => $target->id,
+        'date' => '2026-04-25',
+        'clock_in_at' => '2026-04-25 09:00:00',
+        'clock_out_at' => '2026-04-25 18:00:00',
+        'status' => 'normal',
+    ];
+    $response = $this->actingAs($admin, 'sanctum')->postJson('/api/admin/attendance', $payload);
+    $response->assertCreated();
+    expect(\App\Models\AttendanceRecord::where('user_id', $target->id)->where('date', '2026-04-25')->exists())->toBeTrue();
+});
+
+it('admin update changes status', function () {
+    $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+    $rec = \App\Models\AttendanceRecord::factory()->create([
+        'date' => '2026-04-25',
+        'status' => 'normal',
+    ]);
+    $response = $this->actingAs($admin, 'sanctum')->patchJson("/api/admin/attendance/{$rec->id}", [
+        'user_id' => $rec->user_id,
+        'date' => '2026-04-25',
+        'clock_in_at' => '2026-04-25 09:00:00',
+        'clock_out_at' => '2026-04-25 18:00:00',
+        'status' => 'on_leave',
+    ]);
+    $response->assertOk();
+    expect($rec->fresh()->status)->toBe('on_leave');
+});
+
+it('returns 409 PAYROLL_LOCKED when target month payroll status is paid', function () {
+    $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+    $target = User::factory()->create();
+
+    \App\Models\Payroll::factory()->for($target)->create([
+        'year_month' => '2026-04',
+        'status' => 'paid',
+    ]);
+
+    $payload = [
+        'user_id' => $target->id,
+        'date' => '2026-04-25',
+        'clock_in_at' => '2026-04-25 09:00:00',
+        'clock_out_at' => '2026-04-25 18:00:00',
+        'status' => 'normal',
+    ];
+    $response = $this->actingAs($admin, 'sanctum')->postJson('/api/admin/attendance', $payload);
+    $response->assertStatus(409);
+    expect($response->json('error_code'))->toBe('PAYROLL_LOCKED');
+});
