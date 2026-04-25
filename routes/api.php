@@ -182,6 +182,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Payroll & Payment Methods ───────────────────────────────────
     Route::get('/payroll', [\App\Http\Controllers\Api\PayrollController::class, 'index']);
+    Route::get('/payroll/{payroll}', [\App\Http\Controllers\Api\PayrollController::class, 'show']);
     Route::get('/payment-methods', [\App\Http\Controllers\Api\PayrollController::class, 'paymentMethods']);
     Route::post('/payment-methods', [\App\Http\Controllers\Api\PayrollController::class, 'storePaymentMethod']);
     Route::put('/payment-methods/{paymentMethod}', [\App\Http\Controllers\Api\PayrollController::class, 'updatePaymentMethod']);

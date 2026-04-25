@@ -45,6 +45,23 @@ class PayrollController extends Controller
         ]);
     }
 
+    /**
+     * Get a specific payroll record by ID for the current user.
+     */
+    public function show(Request $request, Payroll $payroll): JsonResponse
+    {
+        $user = $request->user();
+        if ($payroll->user_id !== $user->id) {
+            abort(403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => null,
+            'payroll' => $this->transformPayroll($payroll),
+        ]);
+    }
+
     // ── Payment Methods ─────────────────────────────────────────────
 
     public function paymentMethods(Request $request): JsonResponse
@@ -337,7 +354,18 @@ class PayrollController extends Controller
             'base_salary' => (float) $p->base_salary,
             'bonus' => (float) $p->bonus,
             'allowance' => (float) $p->allowance,
+            'overtime' => (float) $p->overtime,
             'deduction' => (float) $p->deduction,
+            'deduction_socso' => (float) $p->deduction_socso,
+            'deduction_eis' => (float) $p->deduction_eis,
+            'deduction_eps' => (float) $p->deduction_eps,
+            'deduction_pcb' => (float) $p->deduction_pcb,
+            'other_deduction' => (float) $p->other_deduction,
+            'actual_work_days' => (int) $p->actual_work_days,
+            'calculated_base_salary' => (float) $p->calculated_base_salary,
+            'gross_amount' => $p->gross_amount,
+            'total_deduction' => $p->total_deduction,
+            'hourly_rate' => $p->hourly_rate,
             'net_amount' => (float) $p->net_amount,
             'payment_date' => $p->payment_date?->format('Y-m-d'),
             'currency' => $p->currency ?? 'JPY',
