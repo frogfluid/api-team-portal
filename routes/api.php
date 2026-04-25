@@ -174,6 +174,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/feedback/{monthlyMessage}', [\App\Http\Controllers\Api\MonthlyMessageController::class, 'show']);
     Route::post('/feedback/{monthlyMessage}/confirm', [\App\Http\Controllers\Api\MonthlyMessageController::class, 'confirm']);
 
+    // ── Cleaning Duty ──────────────────────────────────────────────
+    Route::get('/cleaning-duty/today', [\App\Http\Controllers\Api\CleaningDutyController::class, 'today']);
+    Route::get('/cleaning-duty', [\App\Http\Controllers\Api\CleaningDutyController::class, 'index']);   // admin
+    Route::post('/cleaning-duty', [\App\Http\Controllers\Api\CleaningDutyController::class, 'store']); // admin
+
     // ── Job Scopes (user-side) ──────────────────────────────────────
     Route::get('/job-scopes', [\App\Http\Controllers\Api\JobScopeController::class, 'index']);
     Route::get('/job-scopes/{jobScope}', [\App\Http\Controllers\Api\JobScopeController::class, 'show']);
