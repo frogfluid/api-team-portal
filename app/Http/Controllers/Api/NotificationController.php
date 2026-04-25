@@ -16,9 +16,21 @@ class NotificationController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $notifications = $request->user()
+        $query = $request->user()
             ->notifications()
-            ->latest()
+            ->latest();
+
+        // Incremental sync support
+        if (! $request->boolean('force_full') && $request->filled('updated_since')) {
+            try {
+                $since = \Carbon\Carbon::parse((string) $request->updated_since);
+                $query->where('updated_at', '>', $since);
+            } catch (\Exception $e) {
+                // Malformed timestamp — fall through to full list.
+            }
+        }
+
+        $notifications = $query
             ->take(50)
             ->get()
             ->map(fn($n) => [
