@@ -730,4 +730,45 @@ class ChatController extends Controller
             ];
         }));
     }
+
+    public function starMessage(Request $request, \App\Models\Message $message): JsonResponse
+    {
+        $this->ensureChannelAccess($request, $message->channel);
+        \App\Models\MessageStar::firstOrCreate([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+        ]);
+        return response()->json(['ok' => true]);
+    }
+
+    public function unstarMessage(Request $request, \App\Models\Message $message): JsonResponse
+    {
+        \App\Models\MessageStar::where([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+        ])->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    public function addReaction(\App\Http\Requests\MessageReactionStoreRequest $request, \App\Models\Message $message): JsonResponse
+    {
+        $this->ensureChannelAccess($request, $message->channel);
+        \App\Models\MessageReaction::firstOrCreate([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+            'emoji' => $request->string('emoji')->value(),
+        ]);
+        return response()->json(['ok' => true]);
+    }
+
+    public function removeReaction(Request $request, \App\Models\Message $message): JsonResponse
+    {
+        $request->validate(['emoji' => ['required', 'string', 'max:32']]);
+        \App\Models\MessageReaction::where([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+            'emoji' => $request->string('emoji')->value(),
+        ])->delete();
+        return response()->json(['ok' => true]);
+    }
 }

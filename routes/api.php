@@ -118,6 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/{message}/read', [ChatController::class, 'markAppMessageRead']);
     Route::post('/messages/read-all', [ChatController::class, 'markAllAppMessagesRead']);
     Route::post('/messages/{message}/revoke', [ChatController::class, 'revokeMessage']);
+    Route::post('/messages/{message}/star', [ChatController::class, 'starMessage']);
+    Route::delete('/messages/{message}/star', [ChatController::class, 'unstarMessage']);
+    Route::post('/messages/{message}/reactions', [ChatController::class, 'addReaction']);
+    Route::delete('/messages/{message}/reactions', [ChatController::class, 'removeReaction']);
 
     // ── Channels ────────────────────────────────────────────────────
     Route::get('/channels', [ChatController::class, 'getAppChannels']);
