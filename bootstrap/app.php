@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 \Illuminate\Auth\Access\AuthorizationException::class => ['FORBIDDEN', 403],
                 \Illuminate\Database\Eloquent\ModelNotFoundException::class => ['NOT_FOUND', 404],
                 \Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class => ['NOT_FOUND', 404],
+                \App\Exceptions\PayrollLockedException::class        => ['PAYROLL_LOCKED', 409],
             ];
 
             foreach ($map as $class => [$code, $status]) {

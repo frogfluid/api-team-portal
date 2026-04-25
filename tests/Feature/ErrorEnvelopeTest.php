@@ -26,3 +26,14 @@ it('returns error_code=VALIDATION_ERROR on 422 from a missing required field', f
     expect($response->json('error_code'))->toBe('VALIDATION_ERROR');
     expect($response->json('errors'))->toHaveKey('title');
 });
+
+it('returns error_code=PAYROLL_LOCKED with status 409 when PayrollLockedException is thrown', function () {
+    \Illuminate\Support\Facades\Route::get('/__test/payroll-locked', function () {
+        throw new \App\Exceptions\PayrollLockedException('locked for april');
+    })->middleware('api');
+
+    $response = $this->getJson('/__test/payroll-locked');
+    $response->assertStatus(409);
+    expect($response->json('error_code'))->toBe('PAYROLL_LOCKED');
+    expect($response->json('message'))->toBe('locked for april');
+});
