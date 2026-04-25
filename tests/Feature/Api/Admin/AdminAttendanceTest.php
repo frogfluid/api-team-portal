@@ -97,6 +97,27 @@ it('admin update changes status', function () {
     expect($rec->fresh()->status)->toBe('on_leave');
 });
 
+it('admin gets a preview of attendance judgement without persisting', function () {
+    $admin = User::factory()->create(['role' => UserRole::ADMIN]);
+    $target = User::factory()->create();
+
+    $payload = [
+        'user_id' => $target->id,
+        'date' => '2026-04-25',
+        'clock_in_at' => '2026-04-25 09:15:00',
+        'clock_out_at' => '2026-04-25 18:00:00',
+        'status' => 'normal',
+    ];
+    $response = $this->actingAs($admin, 'sanctum')->postJson('/api/admin/attendance/judge-preview', $payload);
+    $response->assertOk();
+    $body = $response->json();
+    // Response may be wrapped by a global success envelope ({success, message, data}); accept either shape.
+    $payloadJson = $body['data'] ?? $body;
+    expect($payloadJson)->toHaveKey('preview');
+    expect($payloadJson['preview'])->toHaveKey('work_duration_minutes');
+    expect(\App\Models\AttendanceRecord::where('user_id', $target->id)->count())->toBe(0); // not persisted
+});
+
 it('returns 409 PAYROLL_LOCKED when target month payroll status is paid', function () {
     $admin = User::factory()->create(['role' => UserRole::ADMIN]);
     $target = User::factory()->create();

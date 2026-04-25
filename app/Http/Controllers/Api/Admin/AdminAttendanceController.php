@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Exceptions\PayrollLockedException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AttendanceJudgePreviewRequest;
 use App\Http\Requests\Admin\AttendanceStoreRequest;
 use App\Http\Requests\Admin\AttendanceUpdateRequest;
 use App\Models\AttendanceRecord;
@@ -85,6 +86,14 @@ class AdminAttendanceController extends Controller
         $record = $service->update($request->user(), $attendance, $merged);
 
         return response()->json(['record' => $record]);
+    }
+
+    public function judgePreview(AttendanceJudgePreviewRequest $request, AttendanceEditService $service): JsonResponse
+    {
+        $data = array_merge(['note' => null, 'post_payroll' => false], $request->validated());
+        $preview = $service->preview($data);
+
+        return response()->json(['preview' => $preview]);
     }
 
     private function assertPayrollNotLocked(int $userId, $date): void

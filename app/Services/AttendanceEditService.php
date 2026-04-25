@@ -39,6 +39,30 @@ class AttendanceEditService
         });
     }
 
+    /**
+     * Compute the projected attendance record (work_duration_minutes etc.) without persisting.
+     *
+     * Implementation note: we wrap a normal create() call inside a transaction that we always
+     * roll back. This guarantees byte-identical computation with create() (Plan 01 parity rule)
+     * without refactoring its internals.
+     */
+    public function preview(array $data): array
+    {
+        $actor = User::query()->find($data['user_id'])
+            ?? new User(['id' => $data['user_id']]);
+
+        DB::beginTransaction();
+        try {
+            $record = $this->create($actor, $data);
+            $array = $record->toArray();
+            DB::rollBack();
+            return $array;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
     public function update(User $actor, AttendanceRecord $record, array $data): AttendanceRecord
     {
         return DB::transaction(function () use ($actor, $record, $data) {

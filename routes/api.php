@@ -257,6 +257,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Admin Attendance Management
         Route::get('/attendance', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'index']);
         Route::post('/attendance', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'store']);
+        // NOTE: judge-preview MUST be registered before /attendance/{attendance} so that
+        // "judge-preview" is not captured as a route-model-bound {attendance} id.
+        Route::post('/attendance/judge-preview', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'judgePreview']);
         Route::patch('/attendance/{attendance}', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'update']);
 
         // Job Scopes Management
