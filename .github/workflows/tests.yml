@@ -1,0 +1,86 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ""
+          MYSQL_DATABASE: team_samurai_plus_testing
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo, pdo_mysql, bcmath, intl, gd, exif, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Prepare environment
+        run: |
+          cp .env.testing .env
+          php artisan key:generate --env=testing --force
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 --silent 2>/dev/null; then
+              echo "MySQL is up"
+              exit 0
+            fi
+            echo "waiting for mysql... ($i/30)"
+            sleep 2
+          done
+          echo "MySQL did not become ready"
+          exit 1
+
+      - name: Run migrations against testing database
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: team_samurai_plus_testing
+          DB_USERNAME: root
+          DB_PASSWORD: ""
+        run: php artisan migrate --env=testing --force
+
+      - name: Run Pest
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: team_samurai_plus_testing
+          DB_USERNAME: root
+          DB_PASSWORD: ""
+        run: ./vendor/bin/pest --colors=always
