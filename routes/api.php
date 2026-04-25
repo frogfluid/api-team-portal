@@ -254,6 +254,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'store']);
         Route::patch('/evaluations/{evaluation}', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'update']);
 
+        // Admin Attendance Management
+        Route::get('/attendance', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'index']);
+
         // Job Scopes Management
         Route::get('/job-scopes', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'index']);
         Route::post('/job-scopes', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'store']);
