@@ -42,6 +42,15 @@ class ScheduleController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        if (! $request->boolean('force_full') && $request->filled('updated_since')) {
+            try {
+                $since = \Carbon\Carbon::parse((string) $request->updated_since);
+                $query->where('updated_at', '>', $since);
+            } catch (\Exception $e) {
+                // Malformed timestamp — fall through to full list.
+            }
+        }
+
         $schedules = $query->limit($limit)->get();
 
         return response()->json($schedules->map(fn ($s) => $this->transformSchedule($s))->values());

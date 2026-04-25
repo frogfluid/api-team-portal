@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\User;
+use App\Models\WeeklyReport;
 use App\Models\WorkDailyLog;
+use App\Models\WorkSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
@@ -82,6 +84,85 @@ it('filters daily logs by updated_since', function () {
 
     $response->assertOk();
     $ids = collect($response->json('logs') ?? $response->json('daily_logs') ?? $response->json('data') ?? $response->json())
+        ->pluck('id');
+    expect($ids)->toContain($new->id);
+    expect($ids)->not->toContain($old->id);
+});
+
+it('filters weekly reports by updated_since', function () {
+    $user = User::factory()->create();
+    $old = WeeklyReport::factory()->for($user)->create([
+        'week_start_date' => Carbon::parse('2025-12-29')->toDateString(),
+    ]);
+    \DB::table('weekly_reports')->where('id', $old->id)->update(['updated_at' => '2026-01-01 00:00:00']);
+    $new = WeeklyReport::factory()->for($user)->create([
+        'week_start_date' => Carbon::parse('2026-03-30')->toDateString(),
+    ]);
+    \DB::table('weekly_reports')->where('id', $new->id)->update(['updated_at' => '2026-04-01 00:00:00']);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/weekly-reports?updated_since=2026-02-01T00:00:00Z');
+
+    $response->assertOk();
+    $ids = collect($response->json('reports') ?? $response->json('weekly_reports') ?? $response->json('data') ?? $response->json())
+        ->pluck('id');
+    expect($ids)->toContain($new->id);
+    expect($ids)->not->toContain($old->id);
+});
+
+it('filters work schedules by updated_since', function () {
+    $user = User::factory()->create();
+    $old = WorkSchedule::factory()->for($user)->create([
+        'start_at' => Carbon::parse('2026-01-01 09:00:00'),
+        'end_at' => Carbon::parse('2026-01-01 18:00:00'),
+    ]);
+    \DB::table('work_schedules')->where('id', $old->id)->update(['updated_at' => '2026-01-01 00:00:00']);
+    $new = WorkSchedule::factory()->for($user)->create([
+        'start_at' => Carbon::parse('2026-04-01 09:00:00'),
+        'end_at' => Carbon::parse('2026-04-01 18:00:00'),
+    ]);
+    \DB::table('work_schedules')->where('id', $new->id)->update(['updated_at' => '2026-04-01 00:00:00']);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/work-schedules?updated_since=2026-02-01T00:00:00Z');
+
+    $response->assertOk();
+    $ids = collect($response->json('schedules') ?? $response->json('work_schedules') ?? $response->json('data') ?? $response->json())
+        ->pluck('id');
+    expect($ids)->toContain($new->id);
+    expect($ids)->not->toContain($old->id);
+});
+
+it('filters leave requests by updated_since', function () {
+    // Note: leaves are stored as WorkSchedule rows where type='leave'
+    // (no separate LeaveRequest model exists in this codebase).
+    $user = User::factory()->create();
+    $old = WorkSchedule::factory()->for($user)->create([
+        'type' => 'leave',
+        'leave_type' => 'annual',
+        'all_day' => true,
+        'leave_days' => 1,
+        'start_at' => Carbon::parse('2026-01-01 00:00:00'),
+        'end_at' => Carbon::parse('2026-01-01 23:59:59'),
+        'status' => 'pending',
+    ]);
+    \DB::table('work_schedules')->where('id', $old->id)->update(['updated_at' => '2026-01-01 00:00:00']);
+    $new = WorkSchedule::factory()->for($user)->create([
+        'type' => 'leave',
+        'leave_type' => 'annual',
+        'all_day' => true,
+        'leave_days' => 1,
+        'start_at' => Carbon::parse('2026-04-01 00:00:00'),
+        'end_at' => Carbon::parse('2026-04-01 23:59:59'),
+        'status' => 'pending',
+    ]);
+    \DB::table('work_schedules')->where('id', $new->id)->update(['updated_at' => '2026-04-01 00:00:00']);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/leaves?updated_since=2026-02-01T00:00:00Z');
+
+    $response->assertOk();
+    $ids = collect($response->json('leaves') ?? $response->json('leave_requests') ?? $response->json('data') ?? $response->json())
         ->pluck('id');
     expect($ids)->toContain($new->id);
     expect($ids)->not->toContain($old->id);

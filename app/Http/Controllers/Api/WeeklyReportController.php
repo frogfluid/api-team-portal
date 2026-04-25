@@ -17,12 +17,22 @@ class WeeklyReportController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $reports = WeeklyReport::query()
+        $query = WeeklyReport::query()
             ->where('user_id', $user->id)
             ->with('user:id,name')
             ->orderByDesc('week_start_date')
-            ->limit(20)
-            ->get();
+            ->limit(20);
+
+        if (! $request->boolean('force_full') && $request->filled('updated_since')) {
+            try {
+                $since = \Carbon\Carbon::parse((string) $request->updated_since);
+                $query->where('updated_at', '>', $since);
+            } catch (\Exception $e) {
+                // Malformed timestamp — fall through to full list.
+            }
+        }
+
+        $reports = $query->get();
 
         return response()->json($reports->map(fn ($r) => $this->transformWeeklyReport($r))->values());
     }
