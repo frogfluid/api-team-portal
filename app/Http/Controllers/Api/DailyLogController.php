@@ -41,6 +41,16 @@ class DailyLogController extends Controller
             $query->where('status', $status);
         }
 
+        // Incremental sync support
+        if (! $request->boolean('force_full') && $request->filled('updated_since')) {
+            try {
+                $since = \Carbon\Carbon::parse((string) $request->updated_since);
+                $query->where('updated_at', '>', $since);
+            } catch (\Exception $e) {
+                // Malformed timestamp — fall through to full list.
+            }
+        }
+
         $logs = $query->limit($limit)->get();
 
         return response()->json($logs->map(fn($l) => $this->transformDailyLog($l))->values());

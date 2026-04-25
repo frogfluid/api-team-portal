@@ -27,13 +27,23 @@ class LeaveController extends Controller
         $timezone = data_get($user->preferences, 'workspace.timezone', 'Asia/Tokyo');
         $year = $request->integer('year', Carbon::now($timezone)->year);
 
-        $leaves = WorkSchedule::query()
+        $query = WorkSchedule::query()
             ->where('user_id', $user->id)
             ->where('type', 'leave')
             ->with('approver:id,name')
             ->orderByDesc('start_at')
-            ->limit(50)
-            ->get();
+            ->limit(50);
+
+        if (! $request->boolean('force_full') && $request->filled('updated_since')) {
+            try {
+                $since = \Carbon\Carbon::parse((string) $request->updated_since);
+                $query->where('updated_at', '>', $since);
+            } catch (\Exception $e) {
+                // Malformed timestamp — fall through to full list.
+            }
+        }
+
+        $leaves = $query->get();
 
         return response()->json($leaves->map(fn($l) => $this->transformLeave($l, $timezone))->values());
     }

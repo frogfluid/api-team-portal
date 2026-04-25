@@ -680,6 +680,9 @@ class ChatController extends Controller
             'revoked_at' => $message->revoked_at?->toIso8601String(),
             'revoked_by' => $message->revoked_by,
             'mentioned_user_ids' => !empty($message->mentioned_user_ids) ? $message->mentioned_user_ids : null,
+            'pinned_at' => $message->pinned_at?->toIso8601String(),
+            'pinned_by_user_id' => $message->pinned_by_user_id,
+            'link_metadata' => $message->link_metadata,
             'created_at' => $message->created_at?->toIso8601String(),
             'is_read' => $isRead,
             'attachments' => $attachments->map(function ($attachment) {
@@ -726,5 +729,46 @@ class ChatController extends Controller
                     : $c->messages()->count(),
             ];
         }));
+    }
+
+    public function starMessage(Request $request, \App\Models\Message $message): JsonResponse
+    {
+        $this->ensureChannelAccess($request, $message->channel);
+        \App\Models\MessageStar::firstOrCreate([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+        ]);
+        return response()->json(['ok' => true]);
+    }
+
+    public function unstarMessage(Request $request, \App\Models\Message $message): JsonResponse
+    {
+        \App\Models\MessageStar::where([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+        ])->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    public function addReaction(\App\Http\Requests\MessageReactionStoreRequest $request, \App\Models\Message $message): JsonResponse
+    {
+        $this->ensureChannelAccess($request, $message->channel);
+        \App\Models\MessageReaction::firstOrCreate([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+            'emoji' => $request->string('emoji')->value(),
+        ]);
+        return response()->json(['ok' => true]);
+    }
+
+    public function removeReaction(Request $request, \App\Models\Message $message): JsonResponse
+    {
+        $request->validate(['emoji' => ['required', 'string', 'max:32']]);
+        \App\Models\MessageReaction::where([
+            'user_id' => $request->user()->id,
+            'message_id' => $message->id,
+            'emoji' => $request->string('emoji')->value(),
+        ])->delete();
+        return response()->json(['ok' => true]);
     }
 }

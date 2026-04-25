@@ -118,6 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/{message}/read', [ChatController::class, 'markAppMessageRead']);
     Route::post('/messages/read-all', [ChatController::class, 'markAllAppMessagesRead']);
     Route::post('/messages/{message}/revoke', [ChatController::class, 'revokeMessage']);
+    Route::post('/messages/{message}/star', [ChatController::class, 'starMessage']);
+    Route::delete('/messages/{message}/star', [ChatController::class, 'unstarMessage']);
+    Route::post('/messages/{message}/reactions', [ChatController::class, 'addReaction']);
+    Route::delete('/messages/{message}/reactions', [ChatController::class, 'removeReaction']);
 
     // ── Channels ────────────────────────────────────────────────────
     Route::get('/channels', [ChatController::class, 'getAppChannels']);
@@ -152,6 +156,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/leaves/{leave}/approve', [LeaveController::class, 'approve']);
     Route::post('/leaves/{leave}/reject', [LeaveController::class, 'reject']);
 
+    // ── Remote Work Requests ────────────────────────────────────────
+    Route::get('/remote-work-requests', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'index']);
+    Route::get('/remote-work-requests/{remoteWorkRequest}', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'show']);
+    Route::post('/remote-work-requests', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'store']);
+    Route::patch('/remote-work-requests/{remoteWorkRequest}', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'update']);
+    Route::delete('/remote-work-requests/{remoteWorkRequest}', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'destroy']);
+    Route::post('/remote-work-requests/{remoteWorkRequest}/approve', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'approve']);
+    Route::post('/remote-work-requests/{remoteWorkRequest}/reject', [\App\Http\Controllers\Api\RemoteWorkRequestController::class, 'reject']);
+
+    // ── AI Evaluations (user-side) ──────────────────────────────────
+    Route::get('/evaluations', [\App\Http\Controllers\Api\AiEvaluationController::class, 'index']);
+    Route::get('/evaluations/{evaluation}', [\App\Http\Controllers\Api\AiEvaluationController::class, 'show']);
+
+    // ── Job Scopes (user-side) ──────────────────────────────────────
+    Route::get('/job-scopes', [\App\Http\Controllers\Api\JobScopeController::class, 'index']);
+    Route::get('/job-scopes/{jobScope}', [\App\Http\Controllers\Api\JobScopeController::class, 'show']);
+
     // ── Work Schedules ──────────────────────────────────────────────
     Route::get('/work-schedules', [ScheduleController::class, 'index']);
     Route::post('/work-schedules', [ScheduleController::class, 'store']);
@@ -182,6 +203,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Payroll & Payment Methods ───────────────────────────────────
     Route::get('/payroll', [\App\Http\Controllers\Api\PayrollController::class, 'index']);
+    Route::get('/payroll/{payroll}', [\App\Http\Controllers\Api\PayrollController::class, 'show']);
     Route::get('/payment-methods', [\App\Http\Controllers\Api\PayrollController::class, 'paymentMethods']);
     Route::post('/payment-methods', [\App\Http\Controllers\Api\PayrollController::class, 'storePaymentMethod']);
     Route::put('/payment-methods/{paymentMethod}', [\App\Http\Controllers\Api\PayrollController::class, 'updatePaymentMethod']);
@@ -226,5 +248,25 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Analytics
         Route::get('/analytics', [AnalyticsController::class, 'adminIndex']);
+
+        // AI Evaluations Management
+        Route::get('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'index']);
+        Route::post('/evaluations', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'store']);
+        Route::patch('/evaluations/{evaluation}', [\App\Http\Controllers\Api\Admin\AiEvaluationController::class, 'update']);
+
+        // Admin Attendance Management
+        Route::get('/attendance', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'index']);
+        Route::post('/attendance', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'store']);
+        // NOTE: judge-preview MUST be registered before /attendance/{attendance} so that
+        // "judge-preview" is not captured as a route-model-bound {attendance} id.
+        Route::post('/attendance/judge-preview', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'judgePreview']);
+        Route::patch('/attendance/{attendance}', [\App\Http\Controllers\Api\Admin\AdminAttendanceController::class, 'update']);
+
+        // Job Scopes Management
+        Route::get('/job-scopes', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'index']);
+        Route::post('/job-scopes', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'store']);
+        Route::patch('/job-scopes/{jobScope}', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'update']);
+        Route::delete('/job-scopes/{jobScope}', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'destroy']);
+        Route::post('/job-scopes/{jobScope}/users', [\App\Http\Controllers\Api\Admin\JobScopeController::class, 'assignUsers']);
     });
 });

@@ -18,7 +18,18 @@ class PayrollFactory extends Factory
         return [
             'user_id' => User::factory(),
             'year_month' => fake()->date('Y-m'),
-            'base_salary' => fake()->randomFloat(2, 3000, 8000),
+            'base_salary' => 0,
+            'bonus' => 0,
+            'allowance' => 0,
+            'overtime' => 0,
+            'deduction' => 0,
+            'deduction_socso' => 0,
+            'deduction_eis' => 0,
+            'deduction_eps' => 0,
+            'deduction_pcb' => 0,
+            'other_deduction' => 0,
+            'net_amount' => 0,
+            'currency' => 'MYR',
             'status' => 'draft',
         ];
     }

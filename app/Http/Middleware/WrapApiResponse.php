@@ -41,15 +41,27 @@ class WrapApiResponse
         // ── Error responses (4xx, 5xx) ──────────────────────────────
         if ($statusCode >= 400) {
             $message = 'Error';
+            $errorCode = null;
+            $errors = null;
             if (is_array($data) && !array_is_list($data)) {
                 $message = $data['message'] ?? 'Error';
+                $errorCode = $data['error_code'] ?? null;
+                $errors = $data['errors'] ?? null;
             }
 
-            return response()->json([
+            $payload = [
                 'success' => false,
                 'message' => $message,
                 'data' => null,
-            ], $statusCode);
+            ];
+            if ($errorCode !== null) {
+                $payload['error_code'] = $errorCode;
+            }
+            if ($errors !== null) {
+                $payload['errors'] = $errors;
+            }
+
+            return response()->json($payload, $statusCode);
         }
 
         // ── Success responses ───────────────────────────────────────
@@ -78,6 +90,6 @@ class WrapApiResponse
             'success' => true,
             'message' => $message,
             'data' => $wrappedData,
-        ]);
+        ], $statusCode);
     }
 }
