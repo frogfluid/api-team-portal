@@ -221,6 +221,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Admin ───────────────────────────────────────────────────────
     Route::prefix('admin')->group(function () {
+        // Audit Log
+        Route::get('/audit-logs', [\App\Http\Controllers\Api\Admin\AuditLogController::class, 'index']);
+        Route::get('/audit-logs/actions', [\App\Http\Controllers\Api\Admin\AuditLogController::class, 'actions']);
+
         // User Management
         Route::get('/users', [UserManagementController::class, 'index']);
         Route::put('/users/{user}', [UserManagementController::class, 'update']);
