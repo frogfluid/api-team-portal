@@ -24,6 +24,16 @@ class AttendanceController extends Controller
                 ->whereYear('date', substr($request->month, 0, 4));
         }
 
+        if ($request->filled('from')) {
+            $query->where('date', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->where('date', '<=', $request->input('to'));
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
         $records = $query->latest('date')->paginate(31);
 
         return response()->json([
@@ -125,6 +135,7 @@ class AttendanceController extends Controller
             'status' => $r->status,
             'status_color' => $r->status_color,
             'note' => $r->note,
+            'is_auto_clocked_out' => (bool) $r->is_auto_clocked_out,
         ];
     }
 
